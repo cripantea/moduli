@@ -27,17 +27,23 @@ jobs:
             NEW_RELEASE="$RELEASES/$RELEASE_NAME"
 
             echo "==> Cloning repository…"
-            [ -d "$RELEASES" ]                               || mkdir -p "$RELEASES"
-            [ -d "$PERSISTENT/storage/app/public" ]          || mkdir -p "$PERSISTENT/storage/app/public"
-            [ -d "$PERSISTENT/storage/framework/cache" ]     || mkdir -p "$PERSISTENT/storage/framework/cache"
-            [ -d "$PERSISTENT/storage/framework/sessions" ]  || mkdir -p "$PERSISTENT/storage/framework/sessions"
-            [ -d "$PERSISTENT/storage/framework/views" ]     || mkdir -p "$PERSISTENT/storage/framework/views"
-            [ -d "$PERSISTENT/storage/logs" ]                || mkdir -p "$PERSISTENT/storage/logs"
-            [ -d "$PERSISTENT/database" ]                    || mkdir -p "$PERSISTENT/database"
-            [ -f "$PERSISTENT/database/database.sqlite" ]    || touch "$PERSISTENT/database/database.sqlite"
-            chmod -R 775 "$PERSISTENT/storage"
-            chmod 664 "$PERSISTENT/database/database.sqlite"
-            chmod 775 "$PERSISTENT/database"
+            [ -d "$RELEASES" ] || mkdir -p "$RELEASES"
+
+            if [ ! -d "$PERSISTENT/storage" ]; then
+              mkdir -p "$PERSISTENT/storage/app/public"
+              mkdir -p "$PERSISTENT/storage/framework/cache"
+              mkdir -p "$PERSISTENT/storage/framework/sessions"
+              mkdir -p "$PERSISTENT/storage/framework/views"
+              mkdir -p "$PERSISTENT/storage/logs"
+              chmod -R 777 "$PERSISTENT/storage"
+            fi
+
+            if [ ! -d "$PERSISTENT/database" ]; then
+              mkdir -p "$PERSISTENT/database"
+              touch "$PERSISTENT/database/database.sqlite"
+              chmod 777 "$PERSISTENT/database"
+              chmod 666 "$PERSISTENT/database/database.sqlite"
+            fi
 
             mkdir "$NEW_RELEASE"
             git clone --depth 1 --branch main git@github.com:cripantea/moduli.git "$NEW_RELEASE"

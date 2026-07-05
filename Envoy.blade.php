@@ -39,20 +39,24 @@ function logMessage($message) {
 
     [ -d {{ $releasesDir }} ]             || mkdir -p {{ $releasesDir }};
     [ -d {{ $persistentDir }} ]           || mkdir -p {{ $persistentDir }};
-    [ -d {{ $persistentDir }}/storage ]   || mkdir -p {{ $persistentDir }}/storage;
-    [ -d {{ $persistentDir }}/storage/app ]               || mkdir -p {{ $persistentDir }}/storage/app;
-    [ -d {{ $persistentDir }}/storage/app/public ]        || mkdir -p {{ $persistentDir }}/storage/app/public;
-    [ -d {{ $persistentDir }}/storage/framework ]         || mkdir -p {{ $persistentDir }}/storage/framework;
-    [ -d {{ $persistentDir }}/storage/framework/cache ]   || mkdir -p {{ $persistentDir }}/storage/framework/cache;
-    [ -d {{ $persistentDir }}/storage/framework/sessions ]|| mkdir -p {{ $persistentDir }}/storage/framework/sessions;
-    [ -d {{ $persistentDir }}/storage/framework/views ]   || mkdir -p {{ $persistentDir }}/storage/framework/views;
-    [ -d {{ $persistentDir }}/storage/logs ]              || mkdir -p {{ $persistentDir }}/storage/logs;
-    [ -d {{ $persistentDir }}/database ]  || mkdir -p {{ $persistentDir }}/database;
-    [ -f {{ $persistentDir }}/database/database.sqlite ] || touch {{ $persistentDir }}/database/database.sqlite;
 
-    chmod -R 775 {{ $persistentDir }}/storage;
-    chmod 664 {{ $persistentDir }}/database/database.sqlite;
-    chmod 775 {{ $persistentDir }}/database;
+    # Storage dirs — chmod solo alla prima creazione (evita errori su file di www-data)
+    if [ ! -d {{ $persistentDir }}/storage ]; then
+        mkdir -p {{ $persistentDir }}/storage/app/public;
+        mkdir -p {{ $persistentDir }}/storage/framework/cache;
+        mkdir -p {{ $persistentDir }}/storage/framework/sessions;
+        mkdir -p {{ $persistentDir }}/storage/framework/views;
+        mkdir -p {{ $persistentDir }}/storage/logs;
+        chmod -R 777 {{ $persistentDir }}/storage;
+    fi;
+
+    # SQLite — chmod solo alla prima creazione
+    if [ ! -d {{ $persistentDir }}/database ]; then
+        mkdir -p {{ $persistentDir }}/database;
+        touch {{ $persistentDir }}/database/database.sqlite;
+        chmod 777 {{ $persistentDir }}/database;
+        chmod 666 {{ $persistentDir }}/database/database.sqlite;
+    fi;
 
     mkdir {{ $newReleaseDir }};
     git clone --depth 1 --branch {{ $branch }} git@github.com:{{ $repository }} {{ $newReleaseDir }};
