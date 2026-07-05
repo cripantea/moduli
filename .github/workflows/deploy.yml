@@ -19,7 +19,7 @@ jobs:
           script: |
             set -e
 
-            BASE="/var/www/html/sinistri-tenant"
+            BASE="/var/www/html/moduli-fusionsoft"
             RELEASES="$BASE/releases"
             PERSISTENT="$BASE/persistent"
             CURRENT="$BASE/current"
@@ -27,15 +27,17 @@ jobs:
             NEW_RELEASE="$RELEASES/$RELEASE_NAME"
 
             echo "==> Cloning repository…"
-            [ -d "$RELEASES" ]                              || mkdir -p "$RELEASES"
-            [ -d "$PERSISTENT/storage/app/public" ]         || mkdir -p "$PERSISTENT/storage/app/public"
-            [ -d "$PERSISTENT/storage/framework/cache" ]    || mkdir -p "$PERSISTENT/storage/framework/cache"
-            [ -d "$PERSISTENT/storage/framework/sessions" ] || mkdir -p "$PERSISTENT/storage/framework/sessions"
-            [ -d "$PERSISTENT/storage/framework/views" ]    || mkdir -p "$PERSISTENT/storage/framework/views"
-            [ -d "$PERSISTENT/storage/logs" ]               || mkdir -p "$PERSISTENT/storage/logs"
+            [ -d "$RELEASES" ]                               || mkdir -p "$RELEASES"
+            [ -d "$PERSISTENT/storage/app/public" ]          || mkdir -p "$PERSISTENT/storage/app/public"
+            [ -d "$PERSISTENT/storage/framework/cache" ]     || mkdir -p "$PERSISTENT/storage/framework/cache"
+            [ -d "$PERSISTENT/storage/framework/sessions" ]  || mkdir -p "$PERSISTENT/storage/framework/sessions"
+            [ -d "$PERSISTENT/storage/framework/views" ]     || mkdir -p "$PERSISTENT/storage/framework/views"
+            [ -d "$PERSISTENT/storage/logs" ]                || mkdir -p "$PERSISTENT/storage/logs"
+            [ -d "$PERSISTENT/database" ]                    || mkdir -p "$PERSISTENT/database"
+            [ -f "$PERSISTENT/database/database.sqlite" ]    || touch "$PERSISTENT/database/database.sqlite"
 
             mkdir "$NEW_RELEASE"
-            git clone --depth 1 --branch main git@github.com:cripantea/sinistropro.git "$NEW_RELEASE"
+            git clone --depth 1 --branch main git@github.com:cripantea/moduli.git "$NEW_RELEASE"
             mkdir -p "$NEW_RELEASE/bootstrap/cache"
             chmod -R 775 "$NEW_RELEASE/bootstrap/cache"
 
@@ -53,6 +55,7 @@ jobs:
             rm -rf "$NEW_RELEASE/storage"
             ln -nfs "$PERSISTENT/storage" "$NEW_RELEASE/storage"
             ln -nfs "$BASE/.env" "$NEW_RELEASE/.env"
+            ln -nfs "$PERSISTENT/database/database.sqlite" "$NEW_RELEASE/database/database.sqlite"
 
             echo "==> Running migrations…"
             php artisan clear-compiled
@@ -63,12 +66,10 @@ jobs:
             php artisan config:clear
             php artisan view:clear
             php artisan route:clear
-            php artisan schedule:clear-cache
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
             php artisan storage:link
-            php artisan queue:restart
 
             echo "==> Cleaning old releases (keep 5)…"
             ls -dt "$RELEASES"/* | tail -n +6 | xargs -d "\n" rm -rf
