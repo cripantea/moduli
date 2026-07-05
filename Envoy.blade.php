@@ -50,6 +50,10 @@ function logMessage($message) {
     [ -d {{ $persistentDir }}/database ]  || mkdir -p {{ $persistentDir }}/database;
     [ -f {{ $persistentDir }}/database/database.sqlite ] || touch {{ $persistentDir }}/database/database.sqlite;
 
+    chmod -R 775 {{ $persistentDir }}/storage;
+    chmod 664 {{ $persistentDir }}/database/database.sqlite;
+    chmod 775 {{ $persistentDir }}/database;
+
     mkdir {{ $newReleaseDir }};
     git clone --depth 1 --branch {{ $branch }} git@github.com:{{ $repository }} {{ $newReleaseDir }};
 

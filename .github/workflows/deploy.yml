@@ -35,6 +35,9 @@ jobs:
             [ -d "$PERSISTENT/storage/logs" ]                || mkdir -p "$PERSISTENT/storage/logs"
             [ -d "$PERSISTENT/database" ]                    || mkdir -p "$PERSISTENT/database"
             [ -f "$PERSISTENT/database/database.sqlite" ]    || touch "$PERSISTENT/database/database.sqlite"
+            chmod -R 775 "$PERSISTENT/storage"
+            chmod 664 "$PERSISTENT/database/database.sqlite"
+            chmod 775 "$PERSISTENT/database"
 
             mkdir "$NEW_RELEASE"
             git clone --depth 1 --branch main git@github.com:cripantea/moduli.git "$NEW_RELEASE"
