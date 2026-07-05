@@ -127,6 +127,7 @@ class PraticaController extends Controller
             'currentStatus',
             'note.user:id,name',
             'allegati.category:id,name',
+            'ispezioni.assegnatoa:id,name,email',
         ]);
 
         $pratica->logView();
@@ -153,11 +154,18 @@ class PraticaController extends Controller
         $praticaModules = PraticaModule::where('pratica_id', $pratica->id)
             ->get(['id', 'module_template_id', 'values']);
 
+        $externalUsers = User::where('tenant_id', auth()->user()->tenant_id)
+            ->where('role', 'external')
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'email']);
+
         return Inertia::render('Pratiche/Show', [
             'pratica'         => $pratica,
             'categories'      => $enabledCategories,
             'moduleTemplates' => $moduleTemplates,
             'praticaModules'  => $praticaModules,
+            'externalUsers'   => $externalUsers,
         ]);
     }
 

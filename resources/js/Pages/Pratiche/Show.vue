@@ -273,6 +273,66 @@
         </div>
       </div>
 
+      <!-- Ispezione / Perito assegnato -->
+      <div v-if="externalUsers.length > 0" class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+        <h3 class="text-sm font-semibold text-gray-700 mb-4">Sopralluogo / Perito</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+          <!-- Perito -->
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Perito assegnato</label>
+            <select
+              v-model="ispezioneForm.assegnato_a_user_id"
+              class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none bg-white"
+              :disabled="ispezioneForm.processing"
+            >
+              <option :value="null">— Nessuno —</option>
+              <option v-for="u in externalUsers" :key="u.id" :value="u.id">{{ u.name }}</option>
+            </select>
+          </div>
+
+          <!-- Data appuntamento -->
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Data appuntamento</label>
+            <input
+              v-model="ispezioneForm.data_appuntamento"
+              type="date"
+              :disabled="ispezioneForm.processing"
+              class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none disabled:bg-gray-50"
+            />
+          </div>
+
+          <!-- Note -->
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Note sopralluogo</label>
+            <input
+              v-model="ispezioneForm.note_sopralluogo"
+              type="text"
+              placeholder="Es. accesso posteriore"
+              :disabled="ispezioneForm.processing"
+              class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none disabled:bg-gray-50"
+            />
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3 mt-4">
+          <button
+            type="button"
+            :disabled="ispezioneForm.processing"
+            @click="saveIspezione"
+            class="inline-flex items-center gap-2 bg-indigo-600 text-white text-xs font-semibold px-4 py-2 rounded-lg hover:bg-indigo-700 transition disabled:opacity-50"
+          >
+            <svg v-if="ispezioneForm.processing" class="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>
+            Salva
+          </button>
+          <!-- Perito corrente -->
+          <span v-if="ispezione?.assegnatoa" class="text-xs text-gray-500">
+            Assegnato a <span class="font-medium text-gray-700">{{ ispezione.assegnatoa.name }}</span>
+            ({{ ispezione.assegnatoa.email }})
+          </span>
+        </div>
+      </div>
+
       <!-- Moduli compilati — ricompila con un click -->
       <div v-if="praticaModules.length > 0" class="bg-white rounded-xl border border-gray-200 shadow-sm px-5 py-4">
         <h3 class="text-sm font-semibold text-gray-700 mb-3">Moduli compilati</h3>
@@ -475,6 +535,15 @@ interface PraticaModule {
   module_template_id: number
   values: Record<string, unknown>
 }
+interface ExternalUser { id: number; name: string; email: string }
+interface Ispezione {
+  id: number
+  assegnato_a_user_id: number | null
+  data_appuntamento: string | null
+  note_sopralluogo: string | null
+  stato: string
+  assegnatoa: ExternalUser | null
+}
 interface TenantStatus { id: number; name: string; color: string }
 interface Nota { id: number; nota: string; user: { id: number; name: string } | null; created_at: string }
 interface DocumentCategory { id: number; name: string; max_file_size_mb: number }
@@ -497,6 +566,7 @@ interface Pratica {
   tenant: { id: number; settings: { custom_fields_schema: FieldSchema[] } | null; statuses: TenantStatus[] }
   note: Nota[]
   allegati: Allegato[]
+  ispezioni: Ispezione[]
 }
 
 const props   = defineProps<{
@@ -504,6 +574,7 @@ const props   = defineProps<{
   categories: DocumentCategory[]
   moduleTemplates: ModuleTemplate[]
   praticaModules: PraticaModule[]
+  externalUsers: ExternalUser[]
 }>()
 const page    = usePage<PageProps>()
 const flash   = computed(() => page.props.flash)
@@ -541,6 +612,19 @@ function deleteNota(id: number) {
 
 function canDeleteNota(nota: Nota) {
   return nota.user?.id === authUser.value.id || authUser.value.role === 'tenant-admin'
+}
+
+// ----- Ispezione / Perito -----
+const ispezione = computed<Ispezione | null>(() => props.pratica.ispezioni?.[0] ?? null)
+
+const ispezioneForm = useForm({
+  assegnato_a_user_id: ispezione.value?.assegnato_a_user_id ?? null as number | null,
+  data_appuntamento:   ispezione.value?.data_appuntamento?.substring(0, 10) ?? '' as string,
+  note_sopralluogo:    ispezione.value?.note_sopralluogo ?? '' as string,
+})
+
+function saveIspezione() {
+  ispezioneForm.post(route('ispezioni.store', props.pratica.id), { preserveScroll: true })
 }
 
 // ----- Moduli dinamici -----

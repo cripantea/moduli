@@ -25,13 +25,13 @@ class IspezioneController extends Controller
         abort_unless($pratica->tenant_id === $user->tenant_id, 403);
 
         $data = $request->validate([
-            'current_status_id'    => ['required', 'integer', 'exists:tenant_statuses,id'],
+            'current_status_id'    => ['nullable', 'integer', 'exists:tenant_statuses,id'],
             'assegnato_a_user_id'  => ['nullable', 'integer', Rule::exists('users', 'id')->where('tenant_id', $user->tenant_id)->where('role', 'external')],
             'data_appuntamento'    => ['nullable', 'date'],
+            'note_sopralluogo'     => ['nullable', 'string', 'max:2000'],
         ]);
 
         DB::transaction(function () use ($pratica, $data, $user): void {
-            // Crea o aggiorna l'ispezione attiva (stato != completata) per questa pratica
             Ispezione::updateOrCreate(
                 [
                     'tenant_id'  => $user->tenant_id,
@@ -40,12 +40,15 @@ class IspezioneController extends Controller
                 [
                     'assegnato_a_user_id' => $data['assegnato_a_user_id'] ?? null,
                     'data_appuntamento'   => $data['data_appuntamento'] ?? null,
+                    'note_sopralluogo'    => $data['note_sopralluogo'] ?? null,
                     'stato'               => 'pianificata',
                 ]
             );
 
-            // Aggiorna lo stato della pratica
-            $pratica->update(['current_status_id' => $data['current_status_id']]);
+            // Aggiorna stato pratica solo se esplicitamente richiesto (Kanban)
+            if (! empty($data['current_status_id'])) {
+                $pratica->update(['current_status_id' => $data['current_status_id']]);
+            }
         });
 
         return response()->json(['ok' => true]);
