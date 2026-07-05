@@ -1,0 +1,77 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: srv961648.hstgr.cloud
+          username: cristi
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
+          script: |
+            set -e
+
+            BASE="/var/www/html/sinistri-tenant"
+            RELEASES="$BASE/releases"
+            PERSISTENT="$BASE/persistent"
+            CURRENT="$BASE/current"
+            RELEASE_NAME=$(date +%Y%m%d-%H%M%S)
+            NEW_RELEASE="$RELEASES/$RELEASE_NAME"
+
+            echo "==> Cloning repository…"
+            [ -d "$RELEASES" ]                              || mkdir -p "$RELEASES"
+            [ -d "$PERSISTENT/storage/app/public" ]         || mkdir -p "$PERSISTENT/storage/app/public"
+            [ -d "$PERSISTENT/storage/framework/cache" ]    || mkdir -p "$PERSISTENT/storage/framework/cache"
+            [ -d "$PERSISTENT/storage/framework/sessions" ] || mkdir -p "$PERSISTENT/storage/framework/sessions"
+            [ -d "$PERSISTENT/storage/framework/views" ]    || mkdir -p "$PERSISTENT/storage/framework/views"
+            [ -d "$PERSISTENT/storage/logs" ]               || mkdir -p "$PERSISTENT/storage/logs"
+
+            mkdir "$NEW_RELEASE"
+            git clone --depth 1 --branch main git@github.com:cripantea/sinistropro.git "$NEW_RELEASE"
+            mkdir -p "$NEW_RELEASE/bootstrap/cache"
+            chmod -R 775 "$NEW_RELEASE/bootstrap/cache"
+
+            echo "==> Composer install…"
+            cd "$NEW_RELEASE"
+            composer install --prefer-dist --no-scripts --no-dev -q -o
+
+            echo "==> npm install…"
+            npm ci --prefer-offline
+
+            echo "==> Building assets…"
+            npm run build
+
+            echo "==> Updating symlinks…"
+            rm -rf "$NEW_RELEASE/storage"
+            ln -nfs "$PERSISTENT/storage" "$NEW_RELEASE/storage"
+            ln -nfs "$BASE/.env" "$NEW_RELEASE/.env"
+
+            echo "==> Running migrations…"
+            php artisan clear-compiled
+            php artisan migrate --force
+
+            echo "==> Activating release…"
+            ln -nfs "$NEW_RELEASE" "$CURRENT"
+            php artisan config:clear
+            php artisan view:clear
+            php artisan route:clear
+            php artisan schedule:clear-cache
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            php artisan storage:link
+            php artisan queue:restart
+
+            echo "==> Cleaning old releases (keep 5)…"
+            ls -dt "$RELEASES"/* | tail -n +6 | xargs -d "\n" rm -rf
+
+            echo "==> Deployed: $RELEASE_NAME"
