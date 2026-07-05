@@ -131,12 +131,24 @@ class ModuleTemplateController extends Controller
         try {
             file_put_contents($tmpPdf, $pdfContent);
 
-            $gs = collect(['/opt/homebrew/bin/gs', '/usr/local/bin/gs', 'gs'])
-                ->first(fn ($b) => $b === 'gs' || file_exists($b));
+            // Resolve gs binary — check common paths then fall back to PATH
+            $gsBin = collect(['/usr/bin/gs', '/usr/local/bin/gs', '/opt/homebrew/bin/gs'])
+                ->first(fn ($b) => file_exists($b));
+
+            if (! $gsBin) {
+                // Last resort: hope gs is in PATH
+                exec('which gs 2>/dev/null', $whichOut, $whichCode);
+                $gsBin = ($whichCode === 0 && ! empty($whichOut[0])) ? trim($whichOut[0]) : null;
+            }
+
+            if (! $gsBin) {
+                Log::error('ModuleTemplateController: Ghostscript not found on server. Install with: sudo apt-get install ghostscript');
+                return response()->json(['error' => 'Ghostscript non installato sul server (sudo apt-get install ghostscript).'], 422);
+            }
 
             $cmd = sprintf(
                 '%s -dBATCH -dNOPAUSE -dQUIET -sDEVICE=jpeg -dJPEGQ=88 -r150 -dFirstPage=%d -dLastPage=%d -sOutputFile=%s %s 2>&1',
-                escapeshellarg($gs),
+                escapeshellarg($gsBin),
                 $page,
                 $page,
                 escapeshellarg($tmpJpeg),
@@ -147,7 +159,9 @@ class ModuleTemplateController extends Controller
 
             if ($exitCode !== 0 || ! file_exists($tmpJpeg) || filesize($tmpJpeg) === 0) {
                 Log::warning('ModuleTemplateController: preview generation failed', [
-                    'exit' => $exitCode, 'out' => implode(' ', $cmdOut),
+                    'gs'   => $gsBin,
+                    'exit' => $exitCode,
+                    'out'  => implode(' ', $cmdOut),
                 ]);
                 return response()->json(['error' => 'Impossibile generare l\'anteprima PDF.'], 422);
             }

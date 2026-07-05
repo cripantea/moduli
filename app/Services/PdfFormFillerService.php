@@ -195,8 +195,18 @@ class PdfFormFillerService
      */
     private function toCompatPdf(string $inputPath): ?string
     {
-        $gs = collect(['/opt/homebrew/bin/gs', '/usr/local/bin/gs', 'gs'])
-            ->first(fn ($b) => $b === 'gs' || file_exists($b));
+        $gs = collect(['/usr/bin/gs', '/usr/local/bin/gs', '/opt/homebrew/bin/gs'])
+            ->first(fn ($b) => file_exists($b));
+
+        if (! $gs) {
+            exec('which gs 2>/dev/null', $whichOut, $whichCode);
+            $gs = ($whichCode === 0 && ! empty($whichOut[0])) ? trim($whichOut[0]) : null;
+        }
+
+        if (! $gs) {
+            Log::error('PdfFormFillerService: Ghostscript not found. Install with: sudo apt-get install ghostscript');
+            return null;
+        }
 
         $outputPath = $inputPath . '_compat.pdf';
 
