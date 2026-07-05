@@ -2,42 +2,17 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ModuleTemplate extends Model
 {
-    use BelongsToTenant;
+    protected $fillable = ['name', 'pdf_template_s3_key', 'fields_schema', 'font_size'];
 
-    protected $table = 'module_templates';
+    protected $casts = ['fields_schema' => 'array'];
 
-    protected $fillable = [
-        'tenant_id',
-        'name',
-        'pdf_template_s3_key',
-        'output_document_category_id',
-        'fields_schema',
-        'font_size',
-    ];
-
-    protected $casts = [
-        'fields_schema' => 'array',
-    ];
-
-    public function tenant(): BelongsTo
+    public function compiledModules(): HasMany
     {
-        return $this->belongsTo(Tenant::class);
-    }
-
-    public function outputCategory(): BelongsTo
-    {
-        return $this->belongsTo(DocumentCategory::class, 'output_document_category_id');
-    }
-
-    public function praticaModules(): HasMany
-    {
-        return $this->hasMany(PraticaModule::class, 'module_template_id');
+        return $this->hasMany(CompiledModule::class);
     }
 }
