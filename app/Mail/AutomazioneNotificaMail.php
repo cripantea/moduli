@@ -16,6 +16,7 @@ class AutomazioneNotificaMail extends Mailable
         public readonly string $emailSubject,
         public readonly string $compiledBody,
         public readonly string $tenantName,
+        public readonly array  $documentLinks = [],
     ) {}
 
     public function envelope(): Envelope

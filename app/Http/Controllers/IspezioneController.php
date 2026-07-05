@@ -51,6 +51,10 @@ class IspezioneController extends Controller
             }
         });
 
-        return response()->json(['ok' => true]);
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true]);
+        }
+
+        return redirect()->back()->with('success', 'Sopralluogo salvato.');
     }
 }

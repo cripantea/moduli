@@ -219,20 +219,12 @@ class ExecuteAutomationJob implements ShouldQueue
         array $recipient,
         array $documentLinks
     ): string {
-        // Lista link documenti
-        $linksText = empty($documentLinks)
-            ? '(nessun documento allegato)'
-            : implode("\n", array_map(
-                fn ($l) => "• {$l['nome_file']}: {$l['url']}",
-                $documentLinks
-            ));
-
         $replacements = [
             '{numero_pratica}'  => (string) $pratica->id,
             '{nome_cliente}'    => $recipient['name'] ?? 'Cliente',
             '{stato_corrente}'  => $pratica->currentStatus?->name ?? '',
             '{nome_tenant}'     => $pratica->tenant?->name ?? '',
-            '{link_documenti}'  => $linksText,
+            '{link_documenti}'  => '',
         ];
 
         // Campi custom dinamici: {campi_custom.nome_campo}
@@ -280,9 +272,10 @@ class ExecuteAutomationJob implements ShouldQueue
 
         Mail::to($recipient['email'])->send(
             new AutomazioneNotificaMail(
-                emailSubject: $subject,
-                compiledBody: $compiledMessage,
-                tenantName:   $pratica->tenant?->name ?? '',
+                emailSubject:  $subject,
+                compiledBody:  $compiledMessage,
+                tenantName:    $pratica->tenant?->name ?? '',
+                documentLinks: $documentLinks,
             )
         );
     }
