@@ -8,7 +8,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -32,21 +31,9 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
-        if (! Auth::user()->is_active) {
-            Auth::logout();
-            $request->session()->invalidate();
-            throw ValidationException::withMessages([
-                'email' => 'Il tuo account è stato disabilitato. Contatta l\'amministratore.',
-            ]);
-        }
-
         $request->session()->regenerate();
 
-        $destination = Auth::user()->role === 'superadmin'
-            ? route('superadmin.dashboard', absolute: false)
-            : route('dashboard', absolute: false);
-
-        return redirect()->intended($destination);
+        return redirect()->intended(route('dashboard', absolute: false));
     }
 
     /**
