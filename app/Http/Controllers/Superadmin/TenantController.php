@@ -7,6 +7,7 @@ use App\Http\Requests\Superadmin\StoreTenantRequest;
 use App\Http\Requests\Superadmin\UpdateTenantRequest;
 use App\Models\Automation;
 use App\Models\DocumentCategory;
+use App\Models\ModuleTemplate;
 use App\Models\Tenant;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -100,11 +101,28 @@ class TenantController extends Controller
 
         $allDocCategories = DocumentCategory::orderBy('name')->get(['id', 'name']);
 
+        $moduleTemplates = ModuleTemplate::where('tenant_id', $tenant->id)
+            ->with('outputCategory:id,name')
+            ->orderBy('name')
+            ->get()
+            ->map(fn ($t) => [
+                'id'                          => $t->id,
+                'name'                        => $t->name,
+                'pdf_template_s3_key'         => $t->pdf_template_s3_key,
+                'output_document_category_id' => $t->output_document_category_id,
+                'fields_schema'               => $t->fields_schema ?? [],
+                'output_category'             => $t->outputCategory
+                    ? ['id' => $t->outputCategory->id, 'name' => $t->outputCategory->name]
+                    : null,
+            ])
+            ->values();
+
         return Inertia::render('Superadmin/Tenants/Edit', [
             'tenant'            => $tenant,
             'categoriesConfig'  => $categoriesConfig,
             'automations'       => $automations,
             'allDocCategories'  => $allDocCategories,
+            'moduleTemplates'   => $moduleTemplates,
         ]);
     }
 

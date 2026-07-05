@@ -273,6 +273,36 @@
         </div>
       </div>
 
+      <!-- Moduli compilati — ricompila con un click -->
+      <div v-if="praticaModules.length > 0" class="bg-white rounded-xl border border-gray-200 shadow-sm px-5 py-4">
+        <h3 class="text-sm font-semibold text-gray-700 mb-3">Moduli compilati</h3>
+        <div class="flex flex-wrap gap-2">
+          <div v-for="mod in praticaModules" :key="mod.module_template_id" class="flex items-center gap-2">
+            <button
+              type="button"
+              :disabled="!!recompiling[mod.module_template_id]"
+              @click="recompile(mod)"
+              class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition"
+            >
+              <svg v-if="recompiling[mod.module_template_id]" class="animate-spin w-3.5 h-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+              </svg>
+              <svg v-else class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+              {{ templateName(mod.module_template_id) }}
+            </button>
+            <Transition enter-active-class="transition" enter-from-class="opacity-0" leave-active-class="transition" leave-to-class="opacity-0">
+              <span v-if="recompileMsg[mod.module_template_id]" class="text-xs font-medium"
+                    :class="recompileMsg[mod.module_template_id]?.startsWith('✓') ? 'text-green-600' : 'text-amber-600'">
+                {{ recompileMsg[mod.module_template_id] }}
+              </span>
+            </Transition>
+          </div>
+        </div>
+      </div>
+
       <!-- ALLEGATI — griglia per categoria -->
       <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
         <div class="flex items-center justify-between mb-4">
@@ -424,6 +454,8 @@
 import { ref, computed, reactive } from 'vue'
 import { Link, useForm, router, usePage } from '@inertiajs/vue3'
 import axios from 'axios'
+
+const http = axios.create()
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import ModuleFormModal from '@/Components/ModuleFormModal.vue'
 import type { PageProps } from '@/types'
@@ -520,6 +552,33 @@ function onModuleSaved(allegato: Allegato | null, warning: string | null) {
   }
   if (!warning) {
     moduleModalOpen.value = false
+  }
+}
+
+const recompiling  = reactive<Record<number, boolean>>({})
+const recompileMsg = reactive<Record<number, string | null>>({})
+
+function templateName(id: number): string {
+  return props.moduleTemplates.find(t => t.id === id)?.name ?? `Modulo #${id}`
+}
+
+async function recompile(mod: PraticaModule) {
+  recompiling[mod.module_template_id] = true
+  recompileMsg[mod.module_template_id] = null
+  try {
+    const resp = await http.post<{ module: PraticaModule; allegato: Allegato | null; warning: string | null }>(
+      route('pratica-modules.store', props.pratica.id),
+      { module_template_id: mod.module_template_id, values: mod.values }
+    )
+    if (resp.data.allegato) {
+      allegatiList.value.push(resp.data.allegato)
+    }
+    recompileMsg[mod.module_template_id] = resp.data.warning ? '⚠ PDF non generato' : '✓ PDF generato'
+  } catch {
+    recompileMsg[mod.module_template_id] = '✗ Errore'
+  } finally {
+    recompiling[mod.module_template_id] = false
+    setTimeout(() => { recompileMsg[mod.module_template_id] = null }, 4000)
   }
 }
 

@@ -30,6 +30,11 @@ class ModuleTemplate extends Model
         return $this->belongsTo(Tenant::class);
     }
 
+    public function outputCategory(): BelongsTo
+    {
+        return $this->belongsTo(DocumentCategory::class, 'output_document_category_id');
+    }
+
     public function praticaModules(): HasMany
     {
         return $this->hasMany(PraticaModule::class, 'module_template_id');

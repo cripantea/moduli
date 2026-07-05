@@ -58,7 +58,7 @@ class PraticaModuleController extends Controller
         return response()->json([
             'module'   => $module,
             'allegato' => $allegato,
-            'warning'  => $s3Key ? null : 'PDF non generato: verifica che il template abbia un PDF matrice e che pdftk sia installato sul server.',
+            'warning'  => $s3Key ? null : 'PDF non generato: verifica che il template abbia un PDF matrice configurato e che il file S3 sia raggiungibile. Controlla i log per i dettagli.',
         ], 201);
     }
 }

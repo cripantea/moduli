@@ -11,6 +11,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\Superadmin\AutomationController;
 use App\Http\Controllers\Superadmin\DocumentCategoryController;
+use App\Http\Controllers\Superadmin\ModuleTemplateController;
 use App\Http\Controllers\Superadmin\SuperadminController;
 use App\Http\Controllers\Superadmin\TenantController;
 use Illuminate\Support\Facades\Route;
@@ -93,6 +94,13 @@ Route::middleware(['auth', 'superadmin'])->prefix('superadmin')->name('superadmi
 
     // Configurazione categorie per tenant
     Route::post('/tenants/{tenant}/document-categories', [TenantController::class, 'syncDocumentCategories'])->name('tenants.document-categories.sync');
+
+    // Template Moduli PDF — static segments MUST precede {moduleTemplate} wildcard
+    Route::get('/module-templates/preview', [ModuleTemplateController::class, 'previewPage'])->name('tenants.module-templates.preview');
+    Route::post('/tenants/{tenant}/module-templates/extract-fields', [ModuleTemplateController::class, 'extractFields'])->name('tenants.module-templates.extract-fields');
+    Route::post('/tenants/{tenant}/module-templates', [ModuleTemplateController::class, 'store'])->name('tenants.module-templates.store');
+    Route::patch('/tenants/{tenant}/module-templates/{moduleTemplate}', [ModuleTemplateController::class, 'update'])->name('tenants.module-templates.update');
+    Route::delete('/tenants/{tenant}/module-templates/{moduleTemplate}', [ModuleTemplateController::class, 'destroy'])->name('tenants.module-templates.destroy');
 
     // Automazioni tenant
     Route::post('/tenants/{tenant}/automations', [AutomationController::class, 'store'])->name('tenants.automations.store');

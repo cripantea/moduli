@@ -40,6 +40,14 @@
             <!-- Body -->
             <form @submit.prevent="submit" class="px-6 py-5 space-y-4 max-h-[70vh] overflow-y-auto">
 
+              <!-- Error / warning banners — always at top so they're visible -->
+              <div v-if="errorMsg" class="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-xs text-red-700">
+                {{ errorMsg }}
+              </div>
+              <div v-if="warningMsg" class="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-xs text-amber-700">
+                {{ warningMsg }}
+              </div>
+
               <!-- Template selector -->
               <div>
                 <label class="block text-xs font-medium text-slate-700 mb-1">Template modulo *</label>
@@ -135,16 +143,6 @@
               <p v-else-if="selectedTemplate" class="text-xs text-slate-400 italic">
                 Questo template non ha campi configurati.
               </p>
-
-              <!-- Error message -->
-              <div v-if="errorMsg" class="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-xs text-red-700">
-                {{ errorMsg }}
-              </div>
-
-              <!-- Warning (PDF generated but no file) -->
-              <div v-if="warningMsg" class="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-xs text-amber-700">
-                {{ warningMsg }}
-              </div>
 
             </form>
 

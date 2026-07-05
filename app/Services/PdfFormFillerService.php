@@ -7,15 +7,22 @@ use App\Models\PraticaModule;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use mikehaertl\pdftk\Pdf;
+use setasign\Fpdi\Fpdi;
+
+// fpdf/fpdf v1.86+ uses the Fpdf\Fpdf namespace; setasign/fpdi still expects
+// the legacy global \FPDF class. Bridge them before FPDI is first loaded.
+if (! class_exists('FPDF', false)) {
+    class_alias(\Fpdf\Fpdf::class, 'FPDF');
+}
 
 class PdfFormFillerService
 {
     /**
-     * Compila il PDF matrice AcroForm con i valori del modulo,
-     * lo appiattisce, lo carica su S3 e crea il record Allegato.
+     * Overlays the module values onto the blank PDF matrix using geometric
+     * coordinates (x%, y%, w% of A4 page), uploads the result to S3 and
+     * creates the Allegato record.
      *
-     * @return string  S3 key del PDF compilato, o stringa vuota in caso di errore
+     * @return string  S3 key of the compiled PDF, or empty string on error
      */
     public function compile(PraticaModule $praticaModule): string
     {
@@ -25,17 +32,18 @@ class PdfFormFillerService
         $pratica  = $praticaModule->pratica;
 
         $inputTmp  = null;
+        $compatTmp = null;
         $outputTmp = null;
 
         try {
-            // ── Validazione pre-esecuzione ─────────────────────────────────
+            // ── 1. Validate ───────────────────────────────────────────────────
             if (! $template->pdf_template_s3_key) {
                 throw new \RuntimeException(
                     "ModuleTemplate #{$template->id} ({$template->name}) non ha un PDF matrice configurato."
                 );
             }
 
-            // ── 1. Scarica il PDF matrice da S3 in un file temporaneo ──────
+            // ── 2. Download PDF matrix from S3 ────────────────────────────────
             $pdfContent = Storage::disk('s3')->get($template->pdf_template_s3_key);
 
             if ($pdfContent === false || $pdfContent === null) {
@@ -44,30 +52,91 @@ class PdfFormFillerService
                 );
             }
 
-            $inputTmp  = tempnam(sys_get_temp_dir(), 'pdftk_in_');
+            $inputTmp  = tempnam(sys_get_temp_dir(), 'fpdi_in_');
             $outputTmp = $inputTmp . '_out.pdf';
-
             file_put_contents($inputTmp, $pdfContent);
 
-            // ── 2. Riempie i campi AcroForm e appiattisce ─────────────────
-            $pdf = new Pdf($inputTmp);
-            $pdf->fillForm($praticaModule->values)
-                ->flatten()
-                ->saveAs($outputTmp);
+            // ── 3. Downgrade to PDF 1.4 via Ghostscript ───────────────────────
+            // FPDI free parser cannot read cross-reference streams (PDF 1.5+).
+            // Ghostscript rewrites the file as PDF 1.4 with uncompressed xrefs.
+            $compatTmp = $this->toCompatPdf($inputTmp);
+            $sourceFile = $compatTmp ?? $inputTmp;
 
-            // php-pdftk non lancia eccezioni: l'errore è in getError()
-            $pdftkError = $pdf->getError();
-            if ($pdftkError) {
-                throw new \RuntimeException("pdftk error: {$pdftkError}");
+            // ── 4. Initialise FPDI (extends FPDF) ─────────────────────────────
+            $pdf = new Fpdi('P', 'mm', 'A4');
+            $pdf->SetAutoPageBreak(false);
+            $pdf->SetMargins(0, 0, 0);
+
+            $pageCount = $pdf->setSourceFile($sourceFile);
+
+            // ── 4. Group fields by page ───────────────────────────────────────
+            $schema = $template->fields_schema ?? [];
+            $values = $praticaModule->values   ?? [];
+
+            $fieldsByPage = [];
+            foreach ($schema as $field) {
+                $page = max(1, (int) ($field['page'] ?? 1));
+                $fieldsByPage[$page][] = $field;
             }
+
+            // ── 5. Loop through every page ────────────────────────────────────
+            for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
+                $tpl = $pdf->importPage($pageNo);
+
+                // A4 portrait: 210 mm wide × 297 mm tall
+                $pdf->AddPage('P', 'A4');
+
+                // Stretch the imported page to fill the full A4 sheet
+                $pdf->useTemplate($tpl, 0, 0, 210, 297);
+
+                $fields = $fieldsByPage[$pageNo] ?? [];
+
+                if (empty($fields)) {
+                    continue;
+                }
+
+                // Helvetica does not need embedding — it is a standard PDF font
+                $pdf->SetFont('Helvetica', '', 10);
+                $pdf->SetTextColor(0, 0, 0);
+
+                foreach ($fields as $field) {
+                    $fieldName = $field['name'] ?? '';
+                    $rawValue  = (string) ($values[$fieldName] ?? '');
+
+                    if ($rawValue === '') {
+                        continue;
+                    }
+
+                    // ── Convert coordinates from % of page to mm ──────────────
+                    $mmX = ((float) ($field['x'] ?? 0)) / 100.0 * 210.0;
+                    $mmY = ((float) ($field['y'] ?? 0)) / 100.0 * 297.0;
+                    $mmW = ((float) ($field['w'] ?? 20)) / 100.0 * 210.0;
+
+
+                    // ── Encode UTF-8 → windows-1252 for FPDF ──────────────────
+                    // windows-1252 covers all Italian accented characters
+                    // (à, è, é, ì, ò, ù) natively — no TRANSLIT needed.
+                    $encoded = iconv('UTF-8', 'windows-1252//IGNORE', $rawValue);
+                    if ($encoded === false || $encoded === '') {
+                        $encoded = $rawValue; // fallback: use original, may show ? for non-Latin chars
+                    }
+
+                    $pdf->SetXY($mmX, $mmY);
+                    // ln=0 → cursor stays on same line after cell; border=0; align=L
+                    $pdf->Cell($mmW, 5, $encoded, 0, 0, 'L');
+                }
+            }
+
+            // ── 6. Write compiled PDF to temp file ────────────────────────────
+            // Output('S') returns the PDF as a string without sending headers
+            $pdfOutput = $pdf->Output('S');
+            file_put_contents($outputTmp, $pdfOutput);
 
             if (! file_exists($outputTmp) || filesize($outputTmp) === 0) {
-                throw new \RuntimeException(
-                    'pdftk non ha prodotto output: il binario pdftk è installato sul server?'
-                );
+                throw new \RuntimeException('FPDI non ha prodotto un file PDF di output.');
             }
 
-            // ── 3. Carica il PDF compilato su S3 ──────────────────────────
+            // ── 7. Upload compiled PDF to S3 ──────────────────────────────────
             $s3Key = sprintf(
                 'tenant_%d/pratica_%d/moduli/%s.pdf',
                 $pratica->tenant_id,
@@ -77,9 +146,7 @@ class PdfFormFillerService
 
             Storage::disk('s3')->put($s3Key, file_get_contents($outputTmp), 'private');
 
-            // ── 4. Crea il record Allegato ────────────────────────────────
-            // tenant_id passato esplicitamente → BelongsToTenant::creating() non sovrascrive
-            // (auth() non è attivo quando chiamato da un Job)
+            // ── 8. Create Allegato record ─────────────────────────────────────
             Allegato::create([
                 'pratica_id'           => $pratica->id,
                 'tenant_id'            => $pratica->tenant_id,
@@ -88,44 +155,73 @@ class PdfFormFillerService
                 'document_category_id' => $template->output_document_category_id,
             ]);
 
-            Log::info('PdfFormFillerService: PDF compilato', [
+            Log::info('PdfFormFillerService: PDF compilato con FPDI', [
                 'pratica_module_id' => $praticaModule->id,
                 'template'          => $template->name,
+                'pages'             => $pageCount,
                 's3_key'            => $s3Key,
             ]);
 
             return $s3Key;
 
         } catch (\RuntimeException $e) {
-            // Errori di configurazione o di pdftk: non recuperabili con retry
             Log::error('PdfFormFillerService: errore permanente', [
                 'pratica_module_id' => $praticaModule->id,
-                'template_id'       => $template->id,
+                'template_id'       => $template->id ?? null,
                 'errore'            => $e->getMessage(),
             ]);
             return '';
 
         } catch (\Throwable $e) {
-            // Errori transienti (S3, filesystem): il caller (Job) può fare retry
             Log::error('PdfFormFillerService: errore transiente', [
                 'pratica_module_id' => $praticaModule->id,
-                'template_id'       => $template->id,
+                'template_id'       => $template->id ?? null,
                 'errore'            => $e->getMessage(),
                 'trace'             => $e->getTraceAsString(),
             ]);
-            // Rilancio per permettere il retry del Job upstream
             throw $e;
 
         } finally {
-            // Pulizia sempre garantita anche in caso di eccezione
             if ($inputTmp  && file_exists($inputTmp))  @unlink($inputTmp);
+            if ($compatTmp && file_exists($compatTmp)) @unlink($compatTmp);
             if ($outputTmp && file_exists($outputTmp)) @unlink($outputTmp);
         }
     }
 
     /**
-     * Genera un URL temporaneo S3 (7 giorni) per il PDF compilato.
-     * Utility per mostrare un link di download dopo la compilazione.
+     * Use Ghostscript to rewrite the PDF as PDF 1.4 (uncompressed xrefs),
+     * which the free FPDI parser can read. Returns the temp file path, or
+     * null if Ghostscript is not available (FPDI will try the original file).
+     */
+    private function toCompatPdf(string $inputPath): ?string
+    {
+        $gs = collect(['/opt/homebrew/bin/gs', '/usr/local/bin/gs', 'gs'])
+            ->first(fn ($b) => $b === 'gs' || file_exists($b));
+
+        $outputPath = $inputPath . '_compat.pdf';
+
+        $cmd = sprintf(
+            '%s -dBATCH -dNOPAUSE -dQUIET -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -sOutputFile=%s %s 2>&1',
+            escapeshellarg($gs),
+            escapeshellarg($outputPath),
+            escapeshellarg($inputPath)
+        );
+
+        exec($cmd, $cmdOutput, $exitCode);
+
+        if ($exitCode !== 0 || ! file_exists($outputPath) || filesize($outputPath) === 0) {
+            Log::warning('PdfFormFillerService: Ghostscript conversion failed', [
+                'exit_code' => $exitCode,
+                'output'    => implode(' ', $cmdOutput),
+            ]);
+            return null;
+        }
+
+        return $outputPath;
+    }
+
+    /**
+     * Generate a temporary signed URL for a compiled PDF (7 days).
      */
     public function temporaryDownloadUrl(string $s3Key): string
     {
