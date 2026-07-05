@@ -31,6 +31,7 @@ class ModuleTemplateController extends Controller
             'fields_schema.*.x'        => ['nullable', 'numeric', 'min:0', 'max:100'],
             'fields_schema.*.y'        => ['nullable', 'numeric', 'min:0', 'max:100'],
             'fields_schema.*.w'        => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'font_size'                => ['nullable', 'integer', 'min:6', 'max:24'],
         ]);
 
         ModuleTemplate::create([
@@ -39,6 +40,7 @@ class ModuleTemplateController extends Controller
             'output_document_category_id' => $data['output_document_category_id'] ?? null,
             'pdf_template_s3_key'         => $data['pdf_template_s3_key'] ?? null,
             'fields_schema'               => $data['fields_schema'] ?? [],
+            'font_size'                   => $data['font_size'] ?? 10,
         ]);
 
         return redirect()
@@ -63,6 +65,7 @@ class ModuleTemplateController extends Controller
             'fields_schema.*.x'        => ['nullable', 'numeric', 'min:0', 'max:100'],
             'fields_schema.*.y'        => ['nullable', 'numeric', 'min:0', 'max:100'],
             'fields_schema.*.w'        => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'font_size'                => ['nullable', 'integer', 'min:6', 'max:24'],
         ]);
 
         $moduleTemplate->update([
@@ -70,6 +73,7 @@ class ModuleTemplateController extends Controller
             'output_document_category_id' => $data['output_document_category_id'] ?? null,
             'pdf_template_s3_key'         => $data['pdf_template_s3_key'] ?? $moduleTemplate->pdf_template_s3_key,
             'fields_schema'               => $data['fields_schema'] ?? [],
+            'font_size'                   => $data['font_size'] ?? $moduleTemplate->font_size,
         ]);
 
         return redirect()

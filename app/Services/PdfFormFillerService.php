@@ -96,7 +96,8 @@ class PdfFormFillerService
                 }
 
                 // Helvetica does not need embedding — it is a standard PDF font
-                $pdf->SetFont('Helvetica', '', 10);
+                $fontSize = max(6, min(24, (int) ($template->font_size ?? 10)));
+                $pdf->SetFont('Helvetica', '', $fontSize);
                 $pdf->SetTextColor(0, 0, 0);
 
                 foreach ($fields as $field) {

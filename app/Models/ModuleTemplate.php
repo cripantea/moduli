@@ -19,6 +19,7 @@ class ModuleTemplate extends Model
         'pdf_template_s3_key',
         'output_document_category_id',
         'fields_schema',
+        'font_size',
     ];
 
     protected $casts = [

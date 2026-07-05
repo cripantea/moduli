@@ -407,7 +407,7 @@
               <!-- Body -->
               <div class="px-6 py-5 space-y-5 overflow-y-auto" :class="coordEditorMode ? 'max-h-[84vh]' : 'max-h-[74vh]'">
 
-                <!-- Nome + Categoria -->
+                <!-- Nome + Categoria + Font size -->
                 <div class="grid grid-cols-2 gap-4">
                   <div>
                     <label class="field-label">Nome template *</label>
@@ -420,6 +420,23 @@
                       <option :value="null">— Nessuna —</option>
                       <option v-for="cat in allDocCategories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
                     </select>
+                  </div>
+                </div>
+
+                <!-- Font size -->
+                <div class="flex items-center gap-3">
+                  <label class="field-label mb-0 shrink-0">Dimensione font PDF</label>
+                  <div class="flex gap-1 flex-wrap">
+                    <button
+                      v-for="size in [7, 8, 9, 10, 11, 12, 14]"
+                      :key="size"
+                      type="button"
+                      @click="moduleForm.font_size = size"
+                      class="px-2.5 py-1 text-xs rounded border transition"
+                      :class="moduleForm.font_size === size
+                        ? 'bg-indigo-600 text-white border-indigo-600 font-semibold'
+                        : 'border-slate-300 text-slate-600 hover:bg-slate-50'"
+                    >{{ size }}pt</button>
                   </div>
                 </div>
 
@@ -630,6 +647,7 @@ interface ModuleTemplate {
   id: number; name: string; pdf_template_s3_key: string | null
   output_document_category_id: number | null; fields_schema: FieldSchema[]
   output_category: { id: number; name: string } | null
+  font_size: number | null
 }
 
 interface TenantFull {
@@ -796,6 +814,7 @@ const moduleForm = useForm({
   output_document_category_id: null as number | null,
   pdf_template_s3_key:         '' as string,
   fields_schema:               [] as FieldSchemaRow[],
+  font_size:                   10 as number,
 })
 
 function openCreateModule() {
@@ -816,6 +835,7 @@ function openEditModule(tmpl: ModuleTemplate) {
   moduleForm.output_document_category_id = tmpl.output_document_category_id
   moduleForm.pdf_template_s3_key         = tmpl.pdf_template_s3_key ?? ''
   moduleForm.fields_schema               = (tmpl.fields_schema ?? []).map(f => ({ ...f, _uid: uid() }))
+  moduleForm.font_size                   = tmpl.font_size ?? 10
   pdfFile.value = null
   Object.assign(extraction, { loading: false, done: !!tmpl.pdf_template_s3_key, error: null })
   jsonViewMode.value = false
