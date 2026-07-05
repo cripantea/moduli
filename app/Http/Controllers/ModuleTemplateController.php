@@ -131,13 +131,12 @@ class ModuleTemplateController extends Controller
     {
         $request->validate(['s3_key' => ['required', 'string']]);
 
-        $pdfContent = Storage::disk('s3')->get($request->s3_key);
-        if (! $pdfContent) {
-            return response()->json(['error' => 'PDF non trovato'], 404);
+        try {
+            $extractor = app(AiFieldExtractorService::class);
+            $fields    = $extractor->extractFromPdf($request->s3_key);
+        } catch (\RuntimeException $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
         }
-
-        $extractor = app(AiFieldExtractorService::class);
-        $fields    = $extractor->extract($pdfContent);
 
         return response()->json(['fields' => $fields]);
     }
