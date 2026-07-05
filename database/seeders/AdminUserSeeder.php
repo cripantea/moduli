@@ -10,11 +10,14 @@ class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
+        $email    = config('app.admin_email', 'admin@moduli.local');
+        $password = config('app.admin_password', 'password');
+
         User::firstOrCreate(
-            ['email' => env('ADMIN_EMAIL', 'admin@moduli.local')],
+            ['email' => $email],
             [
                 'name'     => 'Admin',
-                'password' => Hash::make(env('ADMIN_PASSWORD', 'password')),
+                'password' => Hash::make($password),
             ]
         );
     }
