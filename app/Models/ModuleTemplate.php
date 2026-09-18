@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ModuleTemplate extends Model
 {
-    protected $fillable = ['name', 'pdf_template_s3_key', 'fields_schema', 'font_size'];
+    protected $fillable = ['name', 'pdf_template_s3_key', 'fields_schema', 'font_size', 'text_baseline_shift'];
 
     protected $casts = ['fields_schema' => 'array'];
 

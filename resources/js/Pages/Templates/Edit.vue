@@ -23,6 +23,7 @@ interface Template {
   pdf_template_s3_key: string | null
   fields_schema: FieldSchema[] | null
   font_size: number
+  text_baseline_shift: number
 }
 
 const props = defineProps<{ template: Template | null }>()
@@ -30,10 +31,11 @@ const props = defineProps<{ template: Template | null }>()
 const isNew = computed(() => !props.template)
 
 const form = useForm({
-  name:                props.template?.name ?? '',
-  pdf_template_s3_key: props.template?.pdf_template_s3_key ?? null as string | null,
-  fields_schema:       (props.template?.fields_schema ?? []) as FieldSchema[],
-  font_size:           props.template?.font_size ?? 10,
+  name:                 props.template?.name ?? '',
+  pdf_template_s3_key:  props.template?.pdf_template_s3_key ?? null as string | null,
+  fields_schema:        (props.template?.fields_schema ?? []) as FieldSchema[],
+  font_size:            props.template?.font_size ?? 10,
+  text_baseline_shift:  props.template?.text_baseline_shift ?? 0,
 })
 
 // ── PDF Upload ──────────────────────────────────────────────────────────────
@@ -140,7 +142,7 @@ function destroy() {
       <!-- Base info -->
       <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
         <h2 class="text-sm font-semibold text-gray-900">Informazioni</h2>
-        <div class="grid grid-cols-3 gap-4">
+        <div class="grid grid-cols-4 gap-4">
           <div class="col-span-2">
             <label class="block text-xs font-medium text-gray-700 mb-1">Nome template <span class="text-red-400">*</span></label>
             <input
@@ -159,6 +161,19 @@ function destroy() {
               type="number"
               min="6" max="24"
               class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">
+              Offset verticale (mm)
+              <span class="text-gray-400 font-normal ml-1">↓ = giù</span>
+            </label>
+            <input
+              v-model.number="form.text_baseline_shift"
+              type="number"
+              step="0.5" min="-10" max="10"
+              class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+              placeholder="0"
             />
           </div>
         </div>

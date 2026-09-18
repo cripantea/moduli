@@ -63,7 +63,9 @@ class PdfFormFillerService
                     continue;
                 }
 
-                $fontSizePt = max(6, min(24, (int) ($template->font_size ?? 10)));
+                $fontSizePt    = max(6, min(24, (int) ($template->font_size ?? 10)));
+                $fontSizeMm    = $fontSizePt * (25.4 / 72.0);
+                $baselineShift = (float) ($template->text_baseline_shift ?? 0);
                 $pdf->SetFont('Helvetica', '', $fontSizePt);
                 $pdf->SetTextColor(0, 0, 0);
 
@@ -92,9 +94,8 @@ class PdfFormFillerService
                         continue;
                     }
 
-                    // Text() posiziona la baseline esattamente a mmY — corrisponde al
-                    // bordo inferiore del campo nell'editor (la "riga di scrittura")
-                    $pdf->Text($mmX, $mmY, $encoded);
+                    $pdf->SetXY($mmX, $mmY + $baselineShift);
+                    $pdf->Cell($mmW, $fontSizeMm * 1.4, $encoded, 0, 0, 'L');
                 }
             }
 

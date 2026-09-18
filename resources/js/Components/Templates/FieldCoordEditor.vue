@@ -60,7 +60,7 @@
             <div
               v-for="field in visibleFields"
               :key="field._uid"
-              class="absolute rounded-t-sm border border-b-2 overflow-hidden whitespace-nowrap text-[9px] font-semibold leading-none px-0.5 flex items-end pb-px"
+              class="absolute rounded-sm border border-b-2 overflow-hidden whitespace-nowrap text-[9px] font-semibold leading-none px-0.5 flex items-center"
               :class="[
                 selectedUid === field._uid
                   ? 'border-red-500 bg-red-400/30 text-red-800 ring-1 ring-red-400'
@@ -69,7 +69,7 @@
               ]"
               :style="{
                 left:   field.x + '%',
-                bottom: (100 - field.y) + '%',
+                top:    field.y + '%',
                 width:  field.w + '%',
                 height: fieldHeightPct + '%',
               }"
@@ -81,7 +81,7 @@
         </div>
 
         <p class="text-[10px] text-slate-400 mt-1.5 text-center">
-          Il bordo inferiore (linea spessa) è la riga di scrittura — trascinalo sopra i puntini del PDF
+          Trascina i campi per riposizionarli • Il bordo inferiore (linea spessa) indica la baseline del testo
         </p>
       </div>
 
