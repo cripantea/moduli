@@ -255,6 +255,7 @@ function destroy() {
         <FieldCoordEditor
           :fields="form.fields_schema"
           :s3-key="form.pdf_template_s3_key"
+          :font-size-pt="form.font_size"
           @update:fields="form.fields_schema = $event"
         />
       </div>

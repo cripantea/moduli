@@ -60,18 +60,18 @@
             <div
               v-for="field in visibleFields"
               :key="field._uid"
-              class="absolute rounded-sm border overflow-hidden whitespace-nowrap text-[9px] font-semibold leading-none px-0.5 flex items-center"
+              class="absolute rounded-t-sm border border-b-2 overflow-hidden whitespace-nowrap text-[9px] font-semibold leading-none px-0.5 flex items-end pb-px"
               :class="[
                 selectedUid === field._uid
-                  ? 'border-red-500 bg-red-400/35 text-red-800 ring-1 ring-red-400'
-                  : 'border-indigo-400 bg-indigo-400/25 text-indigo-800',
+                  ? 'border-red-500 bg-red-400/30 text-red-800 ring-1 ring-red-400'
+                  : 'border-indigo-400 bg-indigo-400/20 text-indigo-800',
                 isDragging && dragState?.uid === field._uid ? 'cursor-grabbing' : 'cursor-grab',
               ]"
               :style="{
                 left:   field.x + '%',
-                top:    field.y + '%',
+                bottom: (100 - field.y) + '%',
                 width:  field.w + '%',
-                height: '14px',
+                height: fieldHeightPct + '%',
               }"
               @mousedown.prevent="startDrag(field._uid, $event)"
             >
@@ -81,7 +81,7 @@
         </div>
 
         <p class="text-[10px] text-slate-400 mt-1.5 text-center">
-          Trascina i rettangoli per riposizionare • Seleziona un campo per il pannello di controllo
+          Il bordo inferiore (linea spessa) è la riga di scrittura — trascinalo sopra i puntini del PDF
         </p>
       </div>
 
@@ -189,6 +189,7 @@ interface FieldSchemaRow {
 const props = defineProps<{
   fields: FieldSchemaRow[]
   s3Key:  string | null
+  fontSizePt?: number
 }>()
 
 const emit = defineEmits<{
@@ -196,6 +197,13 @@ const emit = defineEmits<{
 }>()
 
 // ── State ────────────────────────────────────────────────────────────────────
+
+// Altezza del campo come % della pagina — proporzionale al font size
+const fieldHeightPct = computed(() => {
+  const pt = props.fontSizePt ?? 10
+  const fontMm = pt * (25.4 / 72)
+  return (fontMm * 1.4 / 297) * 100
+})
 
 const STEPS        = [0.2, 0.5, 1.0]
 const STEP         = ref(0.5)

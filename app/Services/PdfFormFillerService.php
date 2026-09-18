@@ -63,8 +63,8 @@ class PdfFormFillerService
                     continue;
                 }
 
-                $fontSize = max(6, min(24, (int) ($template->font_size ?? 10)));
-                $pdf->SetFont('Helvetica', '', $fontSize);
+                $fontSizePt = max(6, min(24, (int) ($template->font_size ?? 10)));
+                $pdf->SetFont('Helvetica', '', $fontSizePt);
                 $pdf->SetTextColor(0, 0, 0);
 
                 foreach ($fields as $field) {
@@ -83,8 +83,18 @@ class PdfFormFillerService
                         $encoded = $rawValue;
                     }
 
-                    $pdf->SetXY($mmX, $mmY);
-                    $pdf->Cell($mmW, 5, $encoded, 0, 0, 'L');
+                    // Tronca il testo finché non rientra nella larghezza del campo
+                    while (strlen($encoded) > 0 && $pdf->GetStringWidth($encoded) > $mmW) {
+                        $encoded = substr($encoded, 0, -1);
+                    }
+
+                    if ($encoded === '') {
+                        continue;
+                    }
+
+                    // Text() posiziona la baseline esattamente a mmY — corrisponde al
+                    // bordo inferiore del campo nell'editor (la "riga di scrittura")
+                    $pdf->Text($mmX, $mmY, $encoded);
                 }
             }
 
