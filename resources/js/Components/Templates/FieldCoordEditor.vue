@@ -56,32 +56,43 @@
                alt="Anteprima PDF" />
 
           <!-- Field overlays (only when image loaded) -->
+          <!-- Y = baseline esatta: trascina la linea direttamente sui puntini del PDF -->
           <template v-if="previewDataUrl">
             <div
               v-for="field in visibleFields"
               :key="field._uid"
-              class="absolute rounded-sm border border-b-2 overflow-hidden whitespace-nowrap text-[9px] font-semibold leading-none px-0.5 flex items-center"
-              :class="[
-                selectedUid === field._uid
-                  ? 'border-red-500 bg-red-400/30 text-red-800 ring-1 ring-red-400'
-                  : 'border-indigo-400 bg-indigo-400/20 text-indigo-800',
-                isDragging && dragState?.uid === field._uid ? 'cursor-grabbing' : 'cursor-grab',
-              ]"
+              class="absolute flex flex-col justify-end select-none"
+              :class="isDragging && dragState?.uid === field._uid ? 'cursor-grabbing' : 'cursor-grab'"
               :style="{
                 left:   field.x + '%',
-                top:    field.y + '%',
+                top:    `calc(${field.y}% - 18px)`,
                 width:  field.w + '%',
-                height: fieldHeightPct + '%',
+                height: '20px',
               }"
               @mousedown.prevent="startDrag(field._uid, $event)"
             >
-              <span class="truncate">{{ field.label }}</span>
+              <!-- Label nell'area sopra la linea (dove appare il testo nel PDF) -->
+              <span
+                class="block text-[7px] font-semibold leading-none truncate w-full px-0.5 mb-0.5"
+                :class="selectedUid === field._uid ? 'text-red-600' : 'text-indigo-600'"
+              >{{ field.label }}</span>
+
+              <!-- Linea di baseline + tacche ai bordi -->
+              <div
+                class="relative w-full border-b-2"
+                :class="selectedUid === field._uid ? 'border-red-500' : 'border-indigo-500'"
+              >
+                <div class="absolute bottom-0 left-0 h-2 w-px"
+                     :class="selectedUid === field._uid ? 'bg-red-500' : 'bg-indigo-500'"></div>
+                <div class="absolute bottom-0 right-0 h-2 w-px"
+                     :class="selectedUid === field._uid ? 'bg-red-500' : 'bg-indigo-500'"></div>
+              </div>
             </div>
           </template>
         </div>
 
         <p class="text-[10px] text-slate-400 mt-1.5 text-center">
-          Trascina i campi per riposizionarli • Il bordo inferiore (linea spessa) indica la baseline del testo
+          Trascina la linea direttamente sopra i puntini del PDF — il testo si appoggerà sempre su quella riga
         </p>
       </div>
 
@@ -197,13 +208,6 @@ const emit = defineEmits<{
 }>()
 
 // ── State ────────────────────────────────────────────────────────────────────
-
-// Altezza del campo come % della pagina — proporzionale al font size
-const fieldHeightPct = computed(() => {
-  const pt = props.fontSizePt ?? 10
-  const fontMm = pt * (25.4 / 72)
-  return (fontMm * 1.4 / 297) * 100
-})
 
 const STEPS        = [0.2, 0.5, 1.0]
 const STEP         = ref(0.5)

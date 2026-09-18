@@ -94,8 +94,9 @@ class PdfFormFillerService
                         continue;
                     }
 
-                    $pdf->SetXY($mmX, $mmY + $baselineShift);
-                    $pdf->Cell($mmW, $fontSizeMm * 1.4, $encoded, 0, 0, 'L');
+                    // Text() posiziona la baseline esattamente a mmY+shift
+                    // L'utente trascina la linea nel canvas direttamente sui puntini del PDF
+                    $pdf->Text($mmX, $mmY + $baselineShift, $encoded);
                 }
             }
 
