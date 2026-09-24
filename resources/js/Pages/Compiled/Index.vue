@@ -86,7 +86,7 @@ function destroy(id: number, name: string) {
               <td class="px-5 py-3 text-gray-400 whitespace-nowrap">{{ item.created_at }}</td>
               <td class="px-5 py-3">
                 <div class="flex items-center gap-2 justify-end">
-                  <a :href="route('compiled.download', item.id)" class="text-xs text-indigo-600 hover:underline">Scarica</a>
+                  <a :href="route('compiled.download', item.id)" target="_blank" rel="noopener" class="text-xs text-indigo-600 hover:underline">Scarica</a>
                   <button @click="destroy(item.id, item.original_filename)" class="text-xs text-red-500 hover:text-red-700">Elimina</button>
                 </div>
               </td>

@@ -78,15 +78,29 @@
                     <span v-if="field.required" class="text-red-500">*</span>
                   </label>
 
-                  <input
-                    v-if="field.type === 'text'"
-                    v-model="values[field.name]"
-                    type="text"
-                    :placeholder="field.label"
-                    :required="field.required"
-                    :disabled="submitting"
-                    class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none disabled:bg-slate-50"
-                  />
+                  <template v-if="field.type === 'text'">
+                    <input
+                      v-model="values[field.name]"
+                      type="text"
+                      :placeholder="field.label"
+                      :required="field.required"
+                      :disabled="submitting"
+                      class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none disabled:bg-slate-50"
+                    />
+                    <div v-if="maxCharsForField(field) > 0" class="flex justify-end mt-0.5">
+                      <span
+                        class="text-[10px] tabular-nums"
+                        :class="{
+                          'text-red-500 font-medium': charCount(field) > maxCharsForField(field),
+                          'text-amber-500': charCount(field) > maxCharsForField(field) * 0.8 && charCount(field) <= maxCharsForField(field),
+                          'text-slate-400': charCount(field) <= maxCharsForField(field) * 0.8,
+                        }"
+                      >
+                        {{ charCount(field) }}/{{ maxCharsForField(field) }}
+                        <template v-if="charCount(field) > maxCharsForField(field)"> — verrà troncato nel PDF</template>
+                      </span>
+                    </div>
+                  </template>
 
                   <input
                     v-else-if="field.type === 'date'"
@@ -130,13 +144,27 @@
                   </select>
 
                   <!-- Fallback for unknown types -->
-                  <input
-                    v-else
-                    v-model="values[field.name]"
-                    type="text"
-                    :disabled="submitting"
-                    class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none disabled:bg-slate-50"
-                  />
+                  <template v-else>
+                    <input
+                      v-model="values[field.name]"
+                      type="text"
+                      :disabled="submitting"
+                      class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none disabled:bg-slate-50"
+                    />
+                    <div v-if="maxCharsForField(field) > 0" class="flex justify-end mt-0.5">
+                      <span
+                        class="text-[10px] tabular-nums"
+                        :class="{
+                          'text-red-500 font-medium': charCount(field) > maxCharsForField(field),
+                          'text-amber-500': charCount(field) > maxCharsForField(field) * 0.8 && charCount(field) <= maxCharsForField(field),
+                          'text-slate-400': charCount(field) <= maxCharsForField(field) * 0.8,
+                        }"
+                      >
+                        {{ charCount(field) }}/{{ maxCharsForField(field) }}
+                        <template v-if="charCount(field) > maxCharsForField(field)"> — verrà troncato nel PDF</template>
+                      </span>
+                    </div>
+                  </template>
                 </div>
               </template>
 
@@ -190,6 +218,7 @@ interface FieldSchema {
   type: 'text' | 'date' | 'number' | 'boolean' | 'select'
   required?: boolean
   options?: string[]
+  w?: number
 }
 
 interface ModuleTemplate {
@@ -197,6 +226,7 @@ interface ModuleTemplate {
   name: string
   fields_schema: FieldSchema[]
   pdf_template_s3_key: string | null
+  font_size?: number
 }
 
 interface PraticaModule {
@@ -267,6 +297,19 @@ watch(selectedTemplateId, () => {
   }
   values.value = newValues
 })
+
+// ── Char limit helpers ───────────────────────────────────────────────────────
+function maxCharsForField(field: FieldSchema): number {
+  if (!field.w) return 0
+  const fontPt = selectedTemplate.value?.font_size ?? 10
+  const fieldWidthMm = (field.w / 100) * 210
+  const avgCharWidthMm = fontPt * 0.556 * (25.4 / 72)
+  return Math.floor(fieldWidthMm / avgCharWidthMm)
+}
+
+function charCount(field: FieldSchema): number {
+  return String(values.value[field.name] ?? '').length
+}
 
 // ── Actions ─────────────────────────────────────────────────────────────────
 async function submit() {

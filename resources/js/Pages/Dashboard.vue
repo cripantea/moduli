@@ -70,7 +70,7 @@ defineProps<{
               <p class="text-sm text-gray-900 truncate">{{ item.original_filename }}</p>
               <p class="text-xs text-gray-400">{{ item.template_name }}</p>
             </div>
-            <a :href="route('compiled.download', item.id)" class="ml-4 text-xs text-indigo-600 hover:underline shrink-0">Scarica</a>
+            <a :href="route('compiled.download', item.id)" target="_blank" rel="noopener" class="ml-4 text-xs text-indigo-600 hover:underline shrink-0">Scarica</a>
           </div>
         </div>
         <div v-else class="px-5 py-10 text-center text-sm text-gray-400">

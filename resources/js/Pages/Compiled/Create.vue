@@ -8,6 +8,7 @@ interface FieldSchema {
   label: string
   type: string
   required: boolean
+  w?: number
 }
 
 interface Template {
@@ -40,6 +41,18 @@ watch(selectedId, (id) => {
 
 function submit() {
   form.post(route('compiled.store'))
+}
+
+function maxCharsForField(field: FieldSchema): number {
+  if (!field.w) return 0
+  const fontPt = selectedTemplate.value?.font_size ?? 10
+  const fieldWidthMm = (field.w / 100) * 210
+  const avgCharWidthMm = fontPt * 0.556 * (25.4 / 72)
+  return Math.floor(fieldWidthMm / avgCharWidthMm)
+}
+
+function charCount(field: FieldSchema): number {
+  return String(form.values[field.name] ?? '').length
 }
 </script>
 
@@ -84,18 +97,46 @@ function submit() {
                 {{ field.label }}
                 <span v-if="field.required" class="text-red-400 ml-0.5">*</span>
               </label>
-              <textarea
-                v-if="field.type === 'textarea'"
-                v-model="form.values[field.name]"
-                rows="3"
-                class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-none"
-              />
-              <input
-                v-else
-                :type="field.type === 'date' ? 'date' : 'text'"
-                v-model="form.values[field.name]"
-                class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-              />
+              <template v-if="field.type === 'textarea'">
+                <textarea
+                  v-model="form.values[field.name]"
+                  rows="3"
+                  class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-none"
+                />
+                <div v-if="maxCharsForField(field) > 0" class="flex justify-end mt-0.5">
+                  <span
+                    class="text-[10px] tabular-nums"
+                    :class="{
+                      'text-red-500 font-medium': charCount(field) > maxCharsForField(field),
+                      'text-amber-500': charCount(field) > maxCharsForField(field) * 0.8 && charCount(field) <= maxCharsForField(field),
+                      'text-gray-400': charCount(field) <= maxCharsForField(field) * 0.8,
+                    }"
+                  >
+                    {{ charCount(field) }}/{{ maxCharsForField(field) }}
+                    <template v-if="charCount(field) > maxCharsForField(field)"> — verrà troncato nel PDF</template>
+                  </span>
+                </div>
+              </template>
+              <template v-else>
+                <input
+                  :type="field.type === 'date' ? 'date' : 'text'"
+                  v-model="form.values[field.name]"
+                  class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                />
+                <div v-if="field.type !== 'date' && maxCharsForField(field) > 0" class="flex justify-end mt-0.5">
+                  <span
+                    class="text-[10px] tabular-nums"
+                    :class="{
+                      'text-red-500 font-medium': charCount(field) > maxCharsForField(field),
+                      'text-amber-500': charCount(field) > maxCharsForField(field) * 0.8 && charCount(field) <= maxCharsForField(field),
+                      'text-gray-400': charCount(field) <= maxCharsForField(field) * 0.8,
+                    }"
+                  >
+                    {{ charCount(field) }}/{{ maxCharsForField(field) }}
+                    <template v-if="charCount(field) > maxCharsForField(field)"> — verrà troncato nel PDF</template>
+                  </span>
+                </div>
+              </template>
             </div>
           </div>
         </div>
