@@ -94,8 +94,7 @@ class PdfFormFillerService
                         continue;
                     }
 
-                    $pdf->SetXY($mmX, $mmY + $baselineShift);
-                    $pdf->Cell($mmW, $fontSizeMm * 1.4, $encoded, 0, 0, 'L');
+                    $pdf->Text($mmX, $mmY + $baselineShift, $encoded);
                 }
             }
 
