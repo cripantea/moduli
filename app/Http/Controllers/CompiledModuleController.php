@@ -36,7 +36,7 @@ class CompiledModuleController extends Controller
     public function create(): Response
     {
         return Inertia::render('Compiled/Create', [
-            'templates' => ModuleTemplate::orderBy('name')->get(['id', 'name', 'fields_schema', 'font_size']),
+            'templates' => ModuleTemplate::orderBy('name')->get(['id', 'name', 'fields_schema', 'font_size', 'pdf_template_s3_key']),
         ]);
     }
 
