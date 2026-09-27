@@ -72,18 +72,13 @@ class PdfFormFillerService
                 foreach ($fields as $field) {
                     $fieldName = $field['name'] ?? '';
                     $rawValue  = (string) ($values[$fieldName] ?? '');
+                    if ($rawValue === '') {
+                        continue;
+                    }
 
                     $mmX = ((float) ($field['x'] ?? 0)) / 100.0 * 210.0;
                     $mmY = ((float) ($field['y'] ?? 0)) / 100.0 * 297.0;
                     $mmW = ((float) ($field['w'] ?? 20)) / 100.0 * 210.0;
-
-                    // Copre i puntini del template con un rettangolo bianco
-                    $pdf->SetFillColor(255, 255, 255);
-                    $pdf->Rect($mmX, $mmY + $baselineShift - $fontSizeMm * 0.85, $mmW, $fontSizeMm * 1.1, 'F');
-
-                    if ($rawValue === '') {
-                        continue;
-                    }
 
                     $encoded = iconv('UTF-8', 'windows-1252//IGNORE', $rawValue);
                     if ($encoded === false || $encoded === '') {
@@ -99,7 +94,6 @@ class PdfFormFillerService
                         continue;
                     }
 
-                    $pdf->SetTextColor(0, 0, 0);
                     $pdf->Text($mmX, $mmY + $baselineShift, $encoded);
                 }
             }
