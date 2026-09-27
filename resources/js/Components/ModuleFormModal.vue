@@ -85,6 +85,7 @@
                       :placeholder="field.label"
                       :required="field.required"
                       :disabled="submitting"
+                      :maxlength="maxCharsForField(field) > 0 ? maxCharsForField(field) : undefined"
                       class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none disabled:bg-slate-50"
                     />
                     <div v-if="maxCharsForField(field) > 0" class="flex justify-end mt-0.5">
@@ -149,6 +150,7 @@
                       v-model="values[field.name]"
                       type="text"
                       :disabled="submitting"
+                      :maxlength="maxCharsForField(field) > 0 ? maxCharsForField(field) : undefined"
                       class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none disabled:bg-slate-50"
                     />
                     <div v-if="maxCharsForField(field) > 0" class="flex justify-end mt-0.5">
