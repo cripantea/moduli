@@ -89,7 +89,7 @@ function badgeColor(name: string): string {
     <template #header>
       <div class="flex items-center justify-between w-full">
         <h1 class="text-base font-semibold text-gray-900">Archivio compilazioni</h1>
-        <span v-if="compiled.total" class="text-xs text-gray-400">{{ compiled.total }} documento{{ compiled.total !== 1 ? 'i' : '' }}</span>
+        <span v-if="compiled.total" class="text-xs text-gray-400">{{ compiled.total }} {{ compiled.total === 1 ? 'documento' : 'documenti' }}</span>
       </div>
     </template>
 
