@@ -4,11 +4,20 @@ use App\Http\Controllers\CompiledModuleController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ModuleTemplateController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Superadmin\SuperadminController;
+use App\Http\Controllers\Superadmin\TenantController;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
+// Public landing page
+Route::get('/', function () {
+    return Inertia::render('Landing');
+})->name('landing');
+
+// Tenant app
 Route::middleware('auth')->group(function () {
 
-    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Templates
     Route::get('/templates', [ModuleTemplateController::class, 'index'])->name('templates.index');
@@ -17,8 +26,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/templates/{template}/edit', [ModuleTemplateController::class, 'edit'])->name('templates.edit');
     Route::put('/templates/{template}', [ModuleTemplateController::class, 'update'])->name('templates.update');
     Route::delete('/templates/{template}', [ModuleTemplateController::class, 'destroy'])->name('templates.destroy');
-
-    // Template utilities (JSON)
     Route::post('/templates/upload-pdf', [ModuleTemplateController::class, 'uploadPdf'])->name('templates.upload-pdf');
     Route::get('/templates/preview', [ModuleTemplateController::class, 'previewPage'])->name('templates.preview');
     Route::post('/templates/extract-fields', [ModuleTemplateController::class, 'extractFields'])->name('templates.extract-fields');
@@ -34,6 +41,25 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+// Superadmin panel
+Route::prefix('superadmin')->name('superadmin.')->middleware(['auth', 'superadmin'])->group(function () {
+
+    Route::get('/', [SuperadminController::class, 'dashboard'])->name('dashboard');
+
+    // Tenants
+    Route::get('/tenants', [TenantController::class, 'index'])->name('tenants.index');
+    Route::post('/tenants', [TenantController::class, 'store'])->name('tenants.store');
+    Route::get('/tenants/{tenant}/edit', [TenantController::class, 'edit'])->name('tenants.edit');
+    Route::put('/tenants/{tenant}', [TenantController::class, 'update'])->name('tenants.update');
+    Route::delete('/tenants/{tenant}', [TenantController::class, 'destroy'])->name('tenants.destroy');
+
+    // Users
+    Route::get('/users', [SuperadminController::class, 'users'])->name('users');
+    Route::post('/users', [SuperadminController::class, 'storeUser'])->name('users.store');
+    Route::put('/users/{user}', [SuperadminController::class, 'updateUser'])->name('users.update');
+    Route::post('/users/{user}/toggle', [SuperadminController::class, 'toggleUser'])->name('users.toggle');
 });
 
 require __DIR__ . '/auth.php';

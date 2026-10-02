@@ -1,0 +1,46 @@
+<svg viewBox="0 0 860 190" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@900&amp;display=swap');
+    </style>
+  </defs>
+
+  <!-- Double-flame icon — same S-curve dual-teardrop structure as FusionWA, corporate blue -->
+  <g transform="translate(6, 38) scale(0.77)">
+
+    <!-- Large upper flame (bigger teardrop, tip pointing upper-right) -->
+    <path fill="#1d4ed8" d="
+      M 82 7
+      C 97 0 114 17 111 43
+      C 108 68 88 80 60 82
+      C 73 65 75 48 62 36
+      C 50 24 30 22 25 11
+      C 18 -2 32 -8 48 0
+      C 60 6 74 7 82 7 Z
+    "/>
+
+    <!-- Small lower flame (smaller teardrop, tip also upper-right, offset lower-left) -->
+    <path fill="#1d4ed8" d="
+      M 45 84
+      C 61 75 78 90 74 114
+      C 70 136 50 150 27 150
+      C 38 134 40 117 28 105
+      C 17 93 1 93 -2 79
+      C -6 63 8 52 23 57
+      C 34 61 43 77 45 84 Z
+    "/>
+
+  </g>
+
+  <!-- Wordmark: Fusion (black) immediately followed by Moduli (blue), no space, same font -->
+  <text
+    x="116" y="130"
+    font-family="'Poppins', 'Nunito', 'Arial Black', sans-serif"
+    font-weight="900"
+    font-size="96"
+    letter-spacing="-3"
+  >
+    <tspan fill="#111111">Fusion</tspan><tspan fill="#1d4ed8">Moduli</tspan>
+  </text>
+
+</svg>

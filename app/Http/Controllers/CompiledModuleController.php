@@ -53,6 +53,7 @@ class CompiledModuleController extends Controller
         $s3Key  = $filler->compile($template, $request->values ?? []);
 
         CompiledModule::create([
+            'tenant_id'          => auth()->user()->tenant_id,
             'module_template_id' => $template->id,
             'template_name'      => $template->name,
             'values'             => $request->values ?? [],

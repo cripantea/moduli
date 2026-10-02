@@ -35,6 +35,7 @@ class ModuleTemplateController extends Controller
             'font_size'            => ['nullable', 'integer', 'min:6', 'max:24'],
         ]);
 
+        $data['tenant_id'] = auth()->user()->tenant_id;
         $template = ModuleTemplate::create($data);
 
         return redirect()->route('templates.edit', $template)->with('success', 'Template creato.');

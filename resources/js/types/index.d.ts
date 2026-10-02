@@ -6,10 +6,21 @@ declare global {
   }
 }
 
+export interface Tenant {
+  id: number
+  name: string
+  plan: 'trial' | 'pro' | 'enterprise'
+  is_active: boolean
+}
+
 export interface User {
   id: number
   name: string
   email: string
+  role: 'superadmin' | 'admin' | 'user'
+  tenant_id: number | null
+  tenant?: Tenant
+  is_active: boolean
   email_verified_at?: string
 }
 
