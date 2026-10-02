@@ -78,7 +78,7 @@ function logMessage($message) {
 @task('runNpm', ['on' => 'remote'])
     {{ logMessage('📦  Running npm install…') }}
     cd {{ $newReleaseDir }};
-    npm ci --prefer-offline;
+    npm install --prefer-offline;
 @endtask
 
 {{-- ─── Build assets ────────────────────────────────────────────── --}}
