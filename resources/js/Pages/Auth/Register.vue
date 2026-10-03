@@ -3,6 +3,7 @@ import { Head, Link, useForm } from '@inertiajs/vue3'
 import InputError from '@/Components/InputError.vue'
 
 const form = useForm({
+  company: '',
   name: '',
   email: '',
   password: '',
@@ -52,6 +53,26 @@ const submit = () => {
           <form @submit.prevent="submit" class="space-y-5">
 
             <div>
+              <label for="company" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
+                Azienda
+              </label>
+              <input
+                id="company"
+                v-model="form.company"
+                type="text"
+                autocomplete="organization"
+                required
+                autofocus
+                placeholder="Nome della tua azienda"
+                class="w-full border rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 transition"
+                :class="form.errors.company
+                  ? 'border-red-400 focus:ring-red-300'
+                  : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'"
+              />
+              <InputError :message="form.errors.company" class="mt-1.5" />
+            </div>
+
+            <div>
               <label for="name" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
                 Nome
               </label>
@@ -61,7 +82,6 @@ const submit = () => {
                 type="text"
                 autocomplete="name"
                 required
-                autofocus
                 placeholder="Il tuo nome"
                 class="w-full border rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 transition"
                 :class="form.errors.name

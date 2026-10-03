@@ -95,6 +95,15 @@ class SuperadminController extends Controller
             'tenant_id' => ['required_unless:role,superadmin', 'nullable', 'exists:tenants,id'],
         ]);
 
+        if ($user->isSuperAdmin() && $data['role'] !== 'superadmin') {
+            if ($user->is($request->user())) {
+                return back()->with('error', 'Non puoi rimuovere il ruolo Superadmin a te stesso.');
+            }
+            if (User::where('role', 'superadmin')->count() <= 1) {
+                return back()->with('error', "Deve restare almeno un Superadmin.");
+            }
+        }
+
         $update = [
             'name'      => $data['name'],
             'email'     => $data['email'],

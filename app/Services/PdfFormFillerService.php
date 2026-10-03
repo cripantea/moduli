@@ -3,9 +3,9 @@
 namespace App\Services;
 
 use App\Models\ModuleTemplate;
+use App\Support\TenantStorage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use setasign\Fpdi\Fpdi;
 
 if (! class_exists('FPDF', false)) {
@@ -105,7 +105,7 @@ class PdfFormFillerService
                 throw new \RuntimeException('FPDI non ha prodotto un file PDF di output.');
             }
 
-            $s3Key = sprintf('moduli/%s/%s.pdf', $template->id, (string) Str::uuid());
+            $s3Key = TenantStorage::newCompiledKey($template);
             Storage::disk('s3')->put($s3Key, file_get_contents($outputTmp), 'private');
 
             Log::info('PdfFormFillerService: compilato', [
@@ -133,7 +133,7 @@ class PdfFormFillerService
 
     public function temporaryDownloadUrl(string $s3Key): string
     {
-        return Storage::disk('s3')->temporaryUrl($s3Key, now()->addDays(7));
+        return Storage::disk('s3')->temporaryUrl($s3Key, now()->addMinutes(10));
     }
 
     private function toCompatPdf(string $inputPath): ?string

@@ -15,7 +15,7 @@ Route::get('/', function () {
 })->name('landing');
 
 // Tenant app
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'active', 'verified'])->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -27,8 +27,12 @@ Route::middleware('auth')->group(function () {
     Route::put('/templates/{template}', [ModuleTemplateController::class, 'update'])->name('templates.update');
     Route::delete('/templates/{template}', [ModuleTemplateController::class, 'destroy'])->name('templates.destroy');
     Route::post('/templates/upload-pdf', [ModuleTemplateController::class, 'uploadPdf'])->name('templates.upload-pdf');
-    Route::get('/templates/preview', [ModuleTemplateController::class, 'previewPage'])->name('templates.preview');
-    Route::post('/templates/extract-fields', [ModuleTemplateController::class, 'extractFields'])->name('templates.extract-fields');
+    Route::get('/templates/preview', [ModuleTemplateController::class, 'previewPage'])
+        ->middleware('throttle:pdf-preview')
+        ->name('templates.preview');
+    Route::post('/templates/extract-fields', [ModuleTemplateController::class, 'extractFields'])
+        ->middleware('throttle:ai-extraction')
+        ->name('templates.extract-fields');
 
     // Compiled modules
     Route::get('/compiled', [CompiledModuleController::class, 'index'])->name('compiled.index');
@@ -36,15 +40,17 @@ Route::middleware('auth')->group(function () {
     Route::post('/compiled', [CompiledModuleController::class, 'store'])->name('compiled.store');
     Route::get('/compiled/{compiled}/download', [CompiledModuleController::class, 'download'])->name('compiled.download');
     Route::delete('/compiled/{compiled}', [CompiledModuleController::class, 'destroy'])->name('compiled.destroy');
+});
 
-    // Profile
+// Profile: accessible before email verification so the address can be corrected
+Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
 // Superadmin panel
-Route::prefix('superadmin')->name('superadmin.')->middleware(['auth', 'superadmin'])->group(function () {
+Route::prefix('superadmin')->name('superadmin.')->middleware(['auth', 'active', 'verified', 'superadmin'])->group(function () {
 
     Route::get('/', [SuperadminController::class, 'dashboard'])->name('dashboard');
 

@@ -10,16 +10,23 @@ class TenantScope implements Scope
 {
     public function apply(Builder $builder, Model $model): void
     {
+        // CLI e job non hanno un utente: devono filtrare esplicitamente per tenant.
         if (! auth()->check()) {
             return;
         }
 
-        $tenantId = auth()->user()->tenant_id;
+        $user = auth()->user();
 
-        if (! $tenantId) {
+        if ($user->isSuperAdmin()) {
             return;
         }
 
-        $builder->where($model->getTable() . '.tenant_id', $tenantId);
+        // Fail-closed: un utente senza tenant non vede nulla.
+        if (! $user->tenant_id) {
+            $builder->whereRaw('1 = 0');
+            return;
+        }
+
+        $builder->where($model->getTable() . '.tenant_id', $user->tenant_id);
     }
 }

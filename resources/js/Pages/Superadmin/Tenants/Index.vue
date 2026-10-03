@@ -59,7 +59,7 @@ function submitCreate() {
 
 // Delete
 function deleteTenant(id: number, name: string) {
-  if (!confirm(`Eliminare il tenant "${name}"? L'azione non è reversibile.`)) return
+  if (!confirm(`Eliminare il tenant "${name}"?\n\nVerranno eliminati anche tutti i suoi utenti, template, moduli compilati e i relativi PDF. L'azione non è reversibile.`)) return
   router.delete(route('superadmin.tenants.destroy', id))
 }
 

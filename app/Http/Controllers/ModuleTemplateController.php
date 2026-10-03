@@ -4,11 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\ModuleTemplate;
 use App\Services\AiFieldExtractorService;
+use App\Support\TenantStorage;
+use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -28,12 +29,7 @@ class ModuleTemplateController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $data = $request->validate([
-            'name'                 => ['required', 'string', 'max:120'],
-            'pdf_template_s3_key'  => ['nullable', 'string'],
-            'fields_schema'        => ['nullable', 'array'],
-            'font_size'            => ['nullable', 'integer', 'min:6', 'max:24'],
-        ]);
+        $data = $this->validated($request);
 
         $data['tenant_id'] = auth()->user()->tenant_id;
         $template = ModuleTemplate::create($data);
@@ -48,12 +44,7 @@ class ModuleTemplateController extends Controller
 
     public function update(Request $request, ModuleTemplate $template): RedirectResponse
     {
-        $data = $request->validate([
-            'name'                => ['required', 'string', 'max:120'],
-            'pdf_template_s3_key' => ['nullable', 'string'],
-            'fields_schema'       => ['nullable', 'array'],
-            'font_size'           => ['nullable', 'integer', 'min:6', 'max:24'],
-        ]);
+        $data = $this->validated($request);
 
         $template->update($data);
 
@@ -62,10 +53,13 @@ class ModuleTemplateController extends Controller
 
     public function destroy(ModuleTemplate $template): RedirectResponse
     {
-        if ($template->pdf_template_s3_key) {
-            Storage::disk('s3')->delete($template->pdf_template_s3_key);
-        }
+        $key = $template->pdf_template_s3_key;
         $template->delete();
+
+        // Elimina il file solo se nessun altro template lo usa ancora.
+        if ($key && ! ModuleTemplate::withoutGlobalScopes()->where('pdf_template_s3_key', $key)->exists()) {
+            Storage::disk('s3')->delete($key);
+        }
 
         return redirect()->route('templates.index')->with('success', 'Template eliminato.');
     }
@@ -75,7 +69,7 @@ class ModuleTemplateController extends Controller
         $request->validate(['pdf' => ['required', 'file', 'mimes:pdf', 'max:20480']]);
 
         $file  = $request->file('pdf');
-        $s3Key = 'templates/' . Str::uuid() . '.pdf';
+        $s3Key = TenantStorage::newTemplateKey($request->user());
         Storage::disk('s3')->put($s3Key, file_get_contents($file->getRealPath()), 'private');
 
         return response()->json(['s3_key' => $s3Key]);
@@ -84,7 +78,7 @@ class ModuleTemplateController extends Controller
     public function previewPage(Request $request): JsonResponse
     {
         $request->validate([
-            's3_key' => ['required', 'string'],
+            's3_key' => ['required', 'string', $this->ownedTemplateKey()],
             'page'   => ['nullable', 'integer', 'min:1'],
         ]);
 
@@ -130,7 +124,7 @@ class ModuleTemplateController extends Controller
 
     public function extractFields(Request $request): JsonResponse
     {
-        $request->validate(['s3_key' => ['required', 'string']]);
+        $request->validate(['s3_key' => ['required', 'string', $this->ownedTemplateKey()]]);
 
         try {
             $extractor = app(AiFieldExtractorService::class);
@@ -140,5 +134,34 @@ class ModuleTemplateController extends Controller
         }
 
         return response()->json(['fields' => $fields]);
+    }
+
+    private function validated(Request $request): array
+    {
+        $data = $request->validate([
+            'name'                => ['required', 'string', 'max:120'],
+            'pdf_template_s3_key' => ['nullable', 'string', $this->ownedTemplateKey()],
+            'fields_schema'       => ['nullable', 'array'],
+            'font_size'           => ['nullable', 'integer', 'min:6', 'max:24'],
+            'text_baseline_shift' => ['nullable', 'numeric', 'min:-20', 'max:20'],
+        ]);
+
+        if (array_key_exists('text_baseline_shift', $data)) {
+            $data['text_baseline_shift'] = (float) ($data['text_baseline_shift'] ?? 0);
+        }
+
+        return $data;
+    }
+
+    /**
+     * Rifiuta le chiavi S3 che non appartengono al tenant dell'utente.
+     */
+    private function ownedTemplateKey(): Closure
+    {
+        return function (string $attribute, mixed $value, Closure $fail) {
+            if (! is_string($value) || ! TenantStorage::canUseTemplateKey(auth()->user(), $value)) {
+                $fail('Il file PDF indicato non è disponibile.');
+            }
+        };
     }
 }

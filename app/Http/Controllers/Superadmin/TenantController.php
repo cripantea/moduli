@@ -10,7 +10,9 @@ use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -103,7 +105,25 @@ class TenantController extends Controller
     public function destroy(Tenant $tenant): RedirectResponse
     {
         $name = $tenant->name;
-        $tenant->delete();
+
+        $templates = ModuleTemplate::withoutGlobalScope(TenantScope::class)->where('tenant_id', $tenant->id);
+        $compiled  = CompiledModule::withoutGlobalScope(TenantScope::class)->where('tenant_id', $tenant->id);
+
+        $keys = $templates->clone()->whereNotNull('pdf_template_s3_key')->pluck('pdf_template_s3_key')
+            ->merge($compiled->clone()->whereNotNull('s3_key')->pluck('s3_key'));
+
+        // Le FK sono nullOnDelete: senza pulizia esplicita resterebbero dati orfani senza tenant.
+        DB::transaction(function () use ($tenant, $templates, $compiled) {
+            $compiled->delete();
+            $templates->delete();
+            $tenant->users()->delete();
+            $tenant->delete();
+        });
+
+        // I file si eliminano dopo il commit, così un errore DB non lascia record senza file.
+        foreach ($keys->unique()->chunk(500) as $chunk) {
+            Storage::disk('s3')->delete($chunk->all());
+        }
 
         return redirect()->route('superadmin.tenants.index')
             ->with('success', "Tenant \"{$name}\" eliminato.");

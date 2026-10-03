@@ -78,8 +78,9 @@ async function extractFields() {
     )
     let uid = Date.now()
     form.fields_schema = resp.data.fields.map(f => ({ ...f, _uid: uid++ }))
-  } catch {
-    extractError.value = 'Impossibile estrarre i campi con AI.'
+  } catch (err) {
+    const data = axios.isAxiosError(err) ? err.response?.data : null
+    extractError.value = data?.error ?? data?.message ?? 'Impossibile estrarre i campi con AI.'
   } finally {
     extracting.value = false
   }

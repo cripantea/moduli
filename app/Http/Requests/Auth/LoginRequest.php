@@ -50,6 +50,14 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        if ($reason = Auth::user()->accessDeniedReason()) {
+            Auth::guard('web')->logout();
+
+            throw ValidationException::withMessages([
+                'email' => $reason,
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 

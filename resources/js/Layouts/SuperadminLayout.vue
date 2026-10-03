@@ -78,7 +78,10 @@
         <div class="flex items-center gap-3">
           <!-- Flash message -->
           <Transition enter-from-class="opacity-0 translate-y-1" enter-active-class="transition" leave-active-class="transition" leave-to-class="opacity-0">
-            <div v-if="flash" class="text-sm bg-emerald-50 text-emerald-700 border border-emerald-200 rounded px-3 py-1">
+            <div v-if="flashError" class="text-sm bg-red-50 text-red-700 border border-red-200 rounded px-3 py-1">
+              {{ flashError }}
+            </div>
+            <div v-else-if="flash" class="text-sm bg-emerald-50 text-emerald-700 border border-emerald-200 rounded px-3 py-1">
               {{ flash }}
             </div>
           </Transition>
@@ -105,6 +108,7 @@ defineProps<{ title?: string }>()
 
 const page = usePage()
 const flash = computed(() => page.props.flash?.success as string | undefined)
+const flashError = computed(() => page.props.flash?.error as string | undefined)
 const initials = computed(() => {
   const name = page.props.auth.user.name as string
   return name.split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase()

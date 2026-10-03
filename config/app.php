@@ -123,7 +123,8 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
-    'admin_email'    => env('ADMIN_EMAIL', 'admin@moduli.local'),
-    'admin_password' => env('ADMIN_PASSWORD', 'password'),
+    // Nessun valore di fallback: il seeder richiede entrambe le variabili nel .env.
+    'admin_email'    => env('ADMIN_EMAIL'),
+    'admin_password' => env('ADMIN_PASSWORD'),
 
 ];

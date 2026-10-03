@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\User;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -50,6 +51,10 @@ class ProfileController extends Controller
         ]);
 
         $user = $request->user();
+
+        if ($user->isSuperAdmin() && User::where('role', 'superadmin')->count() <= 1) {
+            return back()->withErrors(['password' => "Non puoi eliminare l'ultimo account Superadmin."]);
+        }
 
         Auth::logout();
 
