@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FusionsoftBadge from '@/Components/FusionsoftBadge.vue'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { Head, Link } from '@inertiajs/vue3'
 
@@ -864,7 +865,10 @@ const faqs = [
       </div>
 
       <div class="border-t border-gray-800 pt-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-        <p>© {{ new Date().getFullYear() }} Fusion Moduli. Tutti i diritti riservati.</p>
+        <div class="flex flex-col sm:flex-row items-center gap-3 sm:gap-5">
+          <p>© {{ new Date().getFullYear() }} Fusion Moduli. Tutti i diritti riservati.</p>
+          <FusionsoftBadge dark />
+        </div>
         <div class="flex gap-5">
           <a href="#" class="hover:text-white transition-colors">Privacy Policy</a>
           <a href="#" class="hover:text-white transition-colors">Termini di servizio</a>

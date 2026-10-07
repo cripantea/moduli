@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3'
 import InputError from '@/Components/InputError.vue'
+import FusionsoftBadge from '@/Components/FusionsoftBadge.vue'
 
 defineProps<{
   canResetPassword?: boolean
@@ -132,6 +133,10 @@ const submit = () => {
           Non hai un account?
           <Link href="/register" class="text-indigo-600 font-semibold hover:underline">Inizia gratis</Link>
         </p>
+
+        <div class="mt-6 flex justify-center">
+          <FusionsoftBadge />
+        </div>
 
       </div>
     </div>
