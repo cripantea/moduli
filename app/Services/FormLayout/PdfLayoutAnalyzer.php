@@ -83,7 +83,7 @@ class PdfLayoutAnalyzer
                 $pdfPath,
             ]);
 
-            $textPages = $this->parseTxtwrite($xml);
+            $textPages = array_map(fn (array $spans) => $this->mergeSpans($spans), $this->parseTxtwrite($xml));
             $images    = glob($tmpDir . '/p*.png') ?: [];
             sort($images);
 
@@ -251,30 +251,97 @@ class PdfLayoutAnalyzer
     }
 
     /**
-     * Per ogni carattere: true se fa parte di una sequenza di riempimento ("....", "____").
+     * Alcuni PDF (Canva, InDesign, generatori vari) scrivono ogni lettera come span separato.
+     * Ricostruisce le righe unendo gli span adiacenti sulla stessa baseline, così parole e
+     * sequenze di puntini tornano contigue. Gli span lontani (colonne diverse) restano separati.
+     */
+    private function mergeSpans(array $spans): array
+    {
+        usort($spans, fn ($a, $b) => [round($a['y']), $a['x0']] <=> [round($b['y']), $b['x0']]);
+
+        $out = [];
+        foreach ($spans as $span) {
+            $k = count($out) - 1;
+            if ($k >= 0) {
+                $prev = $out[$k];
+                $size = max($prev['size'], $span['size']);
+                $gap  = $span['x0'] - $prev['x1'];
+                $sameLine = abs($span['y'] - $prev['y']) <= 0.3 * $size
+                    && min($prev['size'], $span['size']) / $size > 0.6;
+
+                if ($sameLine && $gap > -0.5 * $size && $gap < 1.5 * $size) {
+                    $lastC  = end($prev['chars'])['c'];
+                    $firstC = $span['chars'][0]['c'];
+                    if ($gap > 0.2 * $size && trim($lastC) !== '' && trim($firstC) !== '') {
+                        $prev['chars'][] = ['c' => ' ', 'x0' => $prev['x1'], 'x1' => $span['x0']];
+                    }
+                    $prev['chars'] = array_merge($prev['chars'], $span['chars']);
+                    $prev['x1']    = max($prev['x1'], $span['x1']);
+                    $prev['size']  = $size;
+                    $out[$k] = $prev;
+                    continue;
+                }
+            }
+            $out[] = $span;
+        }
+
+        return $out;
+    }
+
+    private function isFillerChar(string $c): bool
+    {
+        return $c === '.' || $c === '_' || $c === '…';
+    }
+
+    /**
+     * Sequenze di riempimento ("....", "____", ". . . .") come coppie [inizio, fine] di indici.
+     * Gli spazi in mezzo sono ammessi, quelli ai bordi no.
+     *
+     * @return array<int, array{0: int, 1: int}>
+     */
+    private function fillerRuns(array $chars): array
+    {
+        $runs = [];
+        $n = count($chars);
+        $i = 0;
+        while ($i < $n) {
+            if (! $this->isFillerChar($chars[$i]['c'])) {
+                $i++;
+                continue;
+            }
+            $j = $i;
+            $count = 1;
+            $k = $i + 1;
+            while ($k < $n) {
+                if ($this->isFillerChar($chars[$k]['c'])) {
+                    $j = $k;
+                    $count++;
+                } elseif (trim($chars[$k]['c']) !== '') {
+                    break;
+                }
+                $k++;
+            }
+            if ($count >= self::MIN_DOT_RUN) {
+                $runs[] = [$i, $j];
+            }
+            $i = $j + 1;
+        }
+
+        return $runs;
+    }
+
+    /**
+     * Per ogni carattere: true se fa parte di una sequenza di riempimento.
      *
      * @return array<int, bool>
      */
     private function fillerMask(array $chars): array
     {
-        $n    = count($chars);
-        $mask = array_fill(0, $n, false);
-        $i    = 0;
-        while ($i < $n) {
-            if (! preg_match('/^[._…]$/u', $chars[$i]['c'])) {
-                $i++;
-                continue;
+        $mask = array_fill(0, count($chars), false);
+        foreach ($this->fillerRuns($chars) as [$i, $j]) {
+            for ($k = $i; $k <= $j; $k++) {
+                $mask[$k] = true;
             }
-            $j = $i;
-            while ($j + 1 < $n && preg_match('/^[._…]$/u', $chars[$j + 1]['c'])) {
-                $j++;
-            }
-            if ($j - $i + 1 >= self::MIN_DOT_RUN) {
-                for ($k = $i; $k <= $j; $k++) {
-                    $mask[$k] = true;
-                }
-            }
-            $i = $j + 1;
         }
 
         return $mask;
@@ -288,31 +355,49 @@ class PdfLayoutAnalyzer
         $slots = [];
         foreach ($spans as $span) {
             $chars = $span['chars'];
-            $n     = count($chars);
-            $i     = 0;
-            while ($i < $n) {
-                if (! preg_match('/^[._…]$/u', $chars[$i]['c'])) {
-                    $i++;
+            foreach ($this->fillerRuns($chars) as [$i, $j]) {
+                if ($chars[$j]['x1'] - $chars[$i]['x0'] < 2.5 * self::MM) {
                     continue;
                 }
-                $j = $i;
-                while ($j + 1 < $n && preg_match('/^[._…]$/u', $chars[$j + 1]['c'])) {
-                    $j++;
+                $slots[] = [
+                    'kind' => $chars[$i]['c'] === '_' ? 'underscore' : 'dots',
+                    'x0'   => $chars[$i]['x0'],
+                    'x1'   => $chars[$j]['x1'],
+                    'y'    => $span['y'],
+                    'top'  => null,
+                    'size' => $span['size'],
+                ];
+            }
+            // Caselle scritte come testo: "[ ]", "☐", "□".
+            $n = count($chars);
+            for ($i = 0; $i < $n; $i++) {
+                $c = $chars[$i]['c'];
+                $end = null;
+                if (in_array($c, ['☐', '□', '❏', '▢'], true)) {
+                    $end = $i;
+                } elseif ($c === '[') {
+                    for ($k = $i + 1; $k < $n && $k <= $i + 3; $k++) {
+                        if ($chars[$k]['c'] === ']') {
+                            $end = $k;
+                            break;
+                        }
+                        if (trim($chars[$k]['c']) !== '') {
+                            break;
+                        }
+                    }
                 }
-                $runLen = $j - $i + 1;
-                $width  = $chars[$j]['x1'] - $chars[$i]['x0'];
-                if ($runLen >= self::MIN_DOT_RUN && $width >= 2.5 * self::MM) {
-                    $isUnderscore = $chars[$i]['c'] === '_';
-                    $slots[] = [
-                        'kind' => $isUnderscore ? 'underscore' : 'dots',
-                        'x0'   => $chars[$i]['x0'],
-                        'x1'   => $chars[$j]['x1'],
-                        'y'    => $span['y'],
-                        'top'  => null,
-                        'size' => $span['size'],
-                    ];
+                if ($end === null) {
+                    continue;
                 }
-                $i = $j + 1;
+                $slots[] = [
+                    'kind' => 'checkbox',
+                    'x0'   => $chars[$i]['x0'],
+                    'x1'   => $chars[$end]['x1'],
+                    'y'    => $span['y'] + 0.1 * $span['size'],
+                    'top'  => $span['y'] - 0.75 * $span['size'],
+                    'size' => $span['size'],
+                ];
+                $i = $end;
             }
         }
 
@@ -778,6 +863,30 @@ class PdfLayoutAnalyzer
 
         usort($left, fn ($p, $q) => $p['x0'] <=> $q['x0']);
         usort($right, fn ($p, $q) => $p['x0'] <=> $q['x0']);
+
+        // Solo le parole contigue allo slot: nei moduli a colonne non si mescolano etichette lontane.
+        $maxGap = 12 * self::MM;
+        $edge = $slot['x0'];
+        $near = [];
+        foreach (array_reverse($left) as $w) {
+            if ($edge - $w['x1'] > $maxGap) {
+                break;
+            }
+            array_unshift($near, $w);
+            $edge = $w['x0'];
+        }
+        $left = $near;
+
+        $edge = $slot['x1'];
+        $near = [];
+        foreach ($right as $w) {
+            if ($w['x0'] - $edge > $maxGap) {
+                break;
+            }
+            $near[] = $w;
+            $edge = $w['x1'];
+        }
+        $right = $near;
         usort($above, fn ($p, $q) => [round($p['y']), $p['x0']] <=> [round($q['y']), $q['x0']]);
         usort($inside, fn ($p, $q) => [round($p['y']), $p['x0']] <=> [round($q['y']), $q['x0']]);
 
@@ -801,28 +910,27 @@ class PdfLayoutAnalyzer
     {
         $rows = [];
         foreach ($spans as $span) {
-            $text = '';
             $chars = $span['chars'];
+            $runs  = [];
+            foreach ($this->fillerRuns($chars) as [$i, $j]) {
+                $runs[$i] = $j;
+            }
+
+            $text = '';
             $n = count($chars);
             for ($i = 0; $i < $n; $i++) {
-                if (preg_match('/^[._…]$/u', $chars[$i]['c'])) {
-                    $j = $i;
-                    while ($j + 1 < $n && preg_match('/^[._…]$/u', $chars[$j + 1]['c'])) {
-                        $j++;
-                    }
-                    if ($j - $i + 1 >= self::MIN_DOT_RUN) {
-                        $id = null;
-                        foreach ($slots as $s) {
-                            if (in_array($s['kind'], ['dots', 'underscore'], true)
-                                && abs($s['x0'] - $chars[$i]['x0']) < 0.5 && abs($s['y'] - $span['y']) < 0.5) {
-                                $id = $s['id'];
-                                break;
-                            }
+                if (isset($runs[$i])) {
+                    $id = null;
+                    foreach ($slots as $s) {
+                        if (in_array($s['kind'], ['dots', 'underscore'], true)
+                            && abs($s['x0'] - $chars[$i]['x0']) < 0.5 && abs($s['y'] - $span['y']) < 0.5) {
+                            $id = $s['id'];
+                            break;
                         }
-                        $text .= $id ? " [S{$id}] " : ' ';
-                        $i = $j;
-                        continue;
                     }
+                    $text .= $id ? " [S{$id}] " : ' ';
+                    $i = $runs[$i];
+                    continue;
                 }
                 $text .= $chars[$i]['c'];
             }

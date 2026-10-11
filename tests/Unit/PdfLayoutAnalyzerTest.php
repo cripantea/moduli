@@ -101,3 +101,33 @@ test('aggiunge i campi del rilevatore neurale solo dove la geometria non ha trov
         ->and($area['top'] / $mm)->toEqualWithDelta(200, 0.1)
         ->and($area['y'] / $mm)->toEqualWithDelta(208, 0.1);
 });
+
+test('ricostruisce le righe dei PDF che scrivono una lettera alla volta (es. Canva)', function () {
+    $pdf = new \Fpdf\Fpdf('P', 'mm', 'A4');
+    $pdf->AddPage();
+    $pdf->SetFont('Helvetica', '', 10);
+
+    // Ogni carattere è un'operazione di testo separata, con puntini spaziati: "Nome: . . . . ."
+    $x = 15.0;
+    foreach (str_split('Nome:' . str_repeat(' .', 30)) as $ch) {
+        $pdf->Text($x, 40, $ch);
+        $x += $pdf->GetStringWidth($ch) + 0.3;
+    }
+    $pdf->Text(15, 60, 'ATTO DI VENDITA [ ]');
+
+    $path = tempnam(sys_get_temp_dir(), 'form_') . '.pdf';
+    $pdf->Output('F', $path);
+
+    try {
+        $pages = (new PdfLayoutAnalyzer)->analyze($path, 5);
+    } finally {
+        @unlink($path);
+    }
+
+    $slots = collect($pages[0]['slots']);
+
+    expect($slots->pluck('kind')->all())->toBe(['dots', 'checkbox'])
+        ->and($slots[0]['left'])->toBe('Nome:')
+        ->and($slots[1]['left'])->toBe('ATTO DI VENDITA')
+        ->and($pages[0]['text_lines'][0]['text'])->toBe('Nome: [S1]');
+});

@@ -28,6 +28,7 @@ class AiFieldExtractorService
     private const MAX_PDF_BYTES = 25 * 1024 * 1024;
     private const MAX_PAGES     = 20;
     private const MAX_TOKENS    = 16000;
+    private const MAX_TOKENS_DEEPSEEK = 64000; // DeepSeek ragiona a lungo prima di rispondere (output max 384K)
 
     private const MM       = 72 / 25.4;
     private const FONT_PT  = 10;                 // font di default dei template
@@ -216,7 +217,7 @@ PROMPT;
                 // DeepSeek non supporta l'output strutturato: lo schema va nel prompt.
                 $message = $client->messages->create(
                     model: $model,
-                    maxTokens: self::MAX_TOKENS,
+                    maxTokens: self::MAX_TOKENS_DEEPSEEK,
                     system: self::SYSTEM_PROMPT . "\n\nRespond with ONLY a JSON object (no markdown, no other text) that validates against this JSON Schema:\n"
                         . json_encode($this->outputSchema(), JSON_UNESCAPED_SLASHES),
                     messages: [['role' => 'user', 'content' => $content]],
@@ -242,9 +243,12 @@ PROMPT;
         }
 
         $text = '';
+        $thinkingChars = 0;
         foreach ($message->content as $block) {
             if ($block->type === 'text') {
                 $text .= $block->text;
+            } elseif ($block->type === 'thinking') {
+                $thinkingChars += strlen($block->thinking ?? '');
             }
         }
 
@@ -253,6 +257,8 @@ PROMPT;
             'model'         => $message->model,
             'input_tokens'  => $message->usage->inputTokens ?? null,
             'output_tokens' => $message->usage->outputTokens ?? null,
+            'thinking_chars' => $thinkingChars,
+            'text_chars'     => strlen($text),
         ]);
 
         $decoded = $this->decodeJson($text);
@@ -450,11 +456,14 @@ PROMPT;
             // Righe impilate → campo multiriga ancorato alla prima riga.
             $ys = array_column($boxes, 'y');
             $gap = (end($ys) - $ys[0]) / (count($ys) - 1);
+            // Il compilatore usa la stessa x per tutte le righe: parte dalla x più a destra,
+            // così la prima riga non copre un'etichetta tipo "Annotazioni: ......".
+            $x0 = max(array_column($boxes, 'x0'));
             $geometry = [
                 'page'  => $page,
-                'x'     => min(array_column($boxes, 'x0')),
+                'x'     => $x0,
                 'y'     => $ys[0],
-                'w'     => max(array_column($boxes, 'x1')) - min(array_column($boxes, 'x0')),
+                'w'     => min(array_column($boxes, 'x1')) - $x0,
                 'lines' => count($boxes),
                 'gap'   => $gap,
             ];
