@@ -35,9 +35,32 @@ return [
         ],
     ],
 
+    // Provider per l'estrazione AI dei campi: anthropic | deepseek
+    'ai' => [
+        'provider' => env('AI_PROVIDER', 'anthropic'),
+    ],
+
+    // DeepSeek tramite il suo endpoint compatibile con l'API Anthropic.
+    // deepseek-flash accetta immagini (serve per le pagine annotate).
+    'deepseek' => [
+        'key'      => env('DEEPSEEK_API_KEY'),
+        'model'    => env('DEEPSEEK_MODEL', 'deepseek-flash'),
+        'base_url' => env('DEEPSEEK_BASE_URL', 'https://api.deepseek.com/anthropic'),
+    ],
+
     'anthropic' => [
-        'key'   => env('ANTHROPIC_API_KEY'),
-        'model' => env('ANTHROPIC_MODEL', 'claude-3-5-haiku-20241022'),
+        'key'    => env('ANTHROPIC_API_KEY'),
+        'model'  => env('ANTHROPIC_MODEL', 'claude-opus-5-5'),
+        // low | medium | high | xhigh | max — più alto = più accurato ma più lento e costoso
+        'effort' => env('ANTHROPIC_EFFORT', 'medium'),
+        'base_url' => env('ANTHROPIC_BASE_URL'),
+    ],
+
+    // Rilevatore neurale dei campi (FFDetr, opzionale): installalo con scripts/form-detector/setup.sh
+    'form_detector' => [
+        'enabled' => env('FORM_DETECTOR_ENABLED', true),
+        'python'  => env('FORM_DETECTOR_PYTHON', storage_path('app/form-detector/venv/bin/python')),
+        'model'   => env('FORM_DETECTOR_MODEL', storage_path('app/form-detector/ffdetr.onnx')),
     ],
 
 ];

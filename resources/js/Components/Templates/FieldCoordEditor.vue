@@ -58,6 +58,20 @@
           <!-- Field overlays (only when image loaded) -->
           <!-- Y = baseline esatta: trascina la linea direttamente sui puntini del PDF -->
           <template v-if="previewDataUrl">
+            <!-- Righe aggiuntive dei campi multiriga (seguono la prima riga) -->
+            <template v-for="field in visibleFields" :key="'extra-' + field._uid">
+              <div
+                v-for="i in Math.max(0, (field.lines ?? 1) - 1)"
+                :key="i"
+                class="absolute border-b border-dashed pointer-events-none"
+                :class="selectedUid === field._uid ? 'border-red-400' : 'border-indigo-400'"
+                :style="{
+                  left:  field.x + '%',
+                  top:   `calc(${(field.y ?? 0) + i * (field.line_gap ?? 0)}% - 1px)`,
+                  width: field.w + '%',
+                }"
+              />
+            </template>
             <div
               v-for="field in visibleFields"
               :key="field._uid"
@@ -84,6 +98,11 @@
                      :class="selectedUid === field._uid ? 'bg-red-500' : 'bg-indigo-500'"></div>
                 <div class="absolute bottom-0 right-0 h-2 w-px"
                      :class="selectedUid === field._uid ? 'bg-red-500' : 'bg-indigo-500'"></div>
+                <!-- Divisori delle caselle "a pettine" (una lettera per casella) -->
+                <div v-for="i in Math.max(0, (field.comb ?? 0) - 1)" :key="'c' + i"
+                     class="absolute bottom-0 h-1.5 w-px"
+                     :class="selectedUid === field._uid ? 'bg-red-400' : 'bg-indigo-400'"
+                     :style="{ left: (i * 100 / (field.comb ?? 1)) + '%' }"></div>
               </div>
             </div>
           </template>
@@ -193,6 +212,7 @@ interface FieldSchemaRow {
   _uid: number
   name: string; label: string; type: string; required: boolean
   page?: number; x?: number; y?: number; w?: number
+  lines?: number; line_gap?: number; comb?: number
 }
 
 const props = defineProps<{

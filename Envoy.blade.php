@@ -165,3 +165,19 @@ function logMessage($message) {
     {{ $php }} artisan config:cache;
     {{ $php }} artisan route:cache;
 @endtask
+
+{{-- ══════════════════════════════════════════════════════════════
+     RILEVATORE CAMPI (FFDetr) — installazione una tantum, opzionale
+     Uso: vendor/bin/envoy run setup-form-detector
+     Richiede python3 + python3-venv sul server. Il modello finisce in
+     persistent/storage/app/form-detector e sopravvive ai deploy.
+     ══════════════════════════════════════════════════════════════ --}}
+@story('setup-form-detector')
+    setupFormDetector
+@endstory
+
+@task('setupFormDetector', ['on' => 'remote'])
+    {{ logMessage('🧠  Installing FFDetr form-field detector…') }}
+    cd {{ $currentDir }};
+    bash scripts/form-detector/setup.sh {{ $persistentDir }}/storage/app/form-detector;
+@endtask

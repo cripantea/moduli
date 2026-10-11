@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Services\FormLayout\FormFieldDetector;
+use App\Services\FormLayout\PdfLayoutAnalyzer;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -10,7 +12,11 @@ use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    public function register(): void {}
+    public function register(): void
+    {
+        // Il rilevatore FFDetr è opzionale: senza, l'analisi usa solo la geometria (es. nei test unitari).
+        $this->app->bind(PdfLayoutAnalyzer::class, fn ($app) => new PdfLayoutAnalyzer($app->make(FormFieldDetector::class)));
+    }
 
     public function boot(): void
     {

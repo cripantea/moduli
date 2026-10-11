@@ -71,7 +71,7 @@ class PdfFormFillerService
 
                 foreach ($fields as $field) {
                     $fieldName = $field['name'] ?? '';
-                    $rawValue  = (string) ($values[$fieldName] ?? '');
+                    $rawValue  = $this->formatValue($field, (string) ($values[$fieldName] ?? ''));
                     if ($rawValue === '') {
                         continue;
                     }
@@ -85,16 +85,33 @@ class PdfFormFillerService
                         $encoded = $rawValue;
                     }
 
-                    // Tronca il testo finché non rientra nella larghezza del campo
-                    while (strlen($encoded) > 0 && $pdf->GetStringWidth($encoded) > $mmW) {
-                        $encoded = substr($encoded, 0, -1);
+                    $lineCount = max(1, (int) ($field['lines'] ?? 1));
+                    $lineGapMm = ((float) ($field['line_gap'] ?? 0)) / 100.0 * 297.0;
+                    if ($lineGapMm <= 0) {
+                        $lineGapMm = $fontSizeMm * 1.3;
                     }
 
-                    if ($encoded === '') {
+                    $comb = (int) ($field['comb'] ?? 0);
+                    if ($comb > 1) {
+                        // Una lettera per casella, centrata.
+                        $cellW = $mmW / $comb;
+                        $chars = str_split(str_replace(' ', '', $encoded));
+                        foreach (array_slice($chars, 0, $comb) as $i => $ch) {
+                            $cx = $mmX + $i * $cellW + ($cellW - $pdf->GetStringWidth($ch)) / 2;
+                            $pdf->Text($cx, $mmY + $baselineShift, $ch);
+                        }
                         continue;
                     }
 
-                    $pdf->Text($mmX, $mmY + $baselineShift, $encoded);
+                    $rows = $lineCount > 1
+                        ? $this->wrapText($pdf, $encoded, $mmW, $lineCount)
+                        : [$this->fitText($pdf, $encoded, $mmW)];
+
+                    foreach ($rows as $i => $row) {
+                        if ($row !== '') {
+                            $pdf->Text($mmX, $mmY + $i * $lineGapMm + $baselineShift, $row);
+                        }
+                    }
                 }
             }
 
@@ -129,6 +146,57 @@ class PdfFormFillerService
             if ($compatTmp && file_exists($compatTmp)) @unlink($compatTmp);
             if ($outputTmp && file_exists($outputTmp)) @unlink($outputTmp);
         }
+    }
+
+    /**
+     * Normalizza il valore in base al tipo di campo (date in formato italiano, checkbox → X).
+     */
+    private function formatValue(array $field, string $value): string
+    {
+        $value = trim($value);
+
+        return match ($field['type'] ?? 'text') {
+            'date'     => preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $value, $m) ? "{$m[3]}/{$m[2]}/{$m[1]}" : $value,
+            'checkbox' => in_array(strtolower($value), ['1', 'true', 'on', 'x', 'si', 'sì', 'yes'], true) ? 'X' : '',
+            default    => $value,
+        };
+    }
+
+    /** Tronca il testo finché non rientra nella larghezza del campo. */
+    private function fitText(Fpdi $pdf, string $text, float $widthMm): string
+    {
+        while ($text !== '' && $pdf->GetStringWidth($text) > $widthMm) {
+            $text = substr($text, 0, -1);
+        }
+
+        return $text;
+    }
+
+    /**
+     * Va a capo per parole sulle righe disponibili; l'ultima riga viene troncata.
+     *
+     * @return array<int, string>
+     */
+    private function wrapText(Fpdi $pdf, string $text, float $widthMm, int $maxLines): array
+    {
+        $rows = [];
+        foreach (preg_split('/\R/', $text) ?: [] as $paragraph) {
+            $current = '';
+            foreach (preg_split('/\s+/', trim($paragraph)) ?: [] as $word) {
+                $candidate = $current === '' ? $word : "{$current} {$word}";
+                if ($pdf->GetStringWidth($candidate) <= $widthMm || $current === '') {
+                    $current = $candidate;
+                } else {
+                    $rows[]  = $current;
+                    $current = $word;
+                }
+            }
+            $rows[] = $current;
+        }
+
+        $rows = array_slice($rows, 0, $maxLines);
+
+        return array_map(fn ($row) => $this->fitText($pdf, $row, $widthMm), $rows);
     }
 
     public function temporaryDownloadUrl(string $s3Key): string

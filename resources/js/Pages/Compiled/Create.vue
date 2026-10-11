@@ -13,6 +13,9 @@ interface FieldSchema {
   x?: number
   y?: number
   page?: number
+  lines?: number
+  line_gap?: number
+  comb?: number
 }
 
 interface Template {
@@ -49,11 +52,23 @@ function submit() {
 }
 
 function maxCharsForField(field: FieldSchema): number {
-  if (!field.w) return 0
+  if (field.comb) return field.comb
+  if (!field.w || field.type === 'checkbox') return 0
   const fontPt = selectedTemplate.value?.font_size ?? 10
   const fieldWidthMm = (field.w / 100) * 210
   const avgCharWidthMm = fontPt * 0.556 * (25.4 / 72)
-  return Math.floor(fieldWidthMm / avgCharWidthMm)
+  return Math.floor(fieldWidthMm / avgCharWidthMm) * Math.max(1, field.lines ?? 1)
+}
+
+// Testo mostrato nell'anteprima, come lo stamperà il compilatore PDF.
+function displayValue(field: FieldSchema): string {
+  const v = String(form.values[field.name] ?? '')
+  if (field.type === 'checkbox') return v ? 'X' : ''
+  if (field.type === 'date') {
+    const m = v.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+    return m ? `${m[3]}/${m[2]}/${m[1]}` : v
+  }
+  return v
 }
 
 function charCount(field: FieldSchema): number {
@@ -182,7 +197,15 @@ onBeforeUnmount(() => ro?.disconnect())
                   <span v-if="field.required" class="text-red-400 ml-0.5">*</span>
                 </label>
 
-                <template v-if="field.type === 'textarea'">
+                <template v-if="field.type === 'checkbox'">
+                  <input
+                    type="checkbox"
+                    :checked="form.values[field.name] === 'X'"
+                    @change="form.values[field.name] = ($event.target as HTMLInputElement).checked ? 'X' : ''"
+                    class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                  />
+                </template>
+                <template v-else-if="field.type === 'textarea'">
                   <textarea
                     v-model="form.values[field.name]"
                     rows="3"
@@ -203,7 +226,7 @@ onBeforeUnmount(() => ro?.disconnect())
                   />
                 </template>
 
-                <div v-if="field.type !== 'date' && maxCharsForField(field) > 0" class="flex justify-end mt-0.5">
+                <div v-if="field.type !== 'date' && field.type !== 'checkbox' && maxCharsForField(field) > 0" class="flex justify-end mt-0.5">
                   <span
                     class="text-[10px] tabular-nums"
                     :class="{
@@ -337,19 +360,20 @@ onBeforeUnmount(() => ro?.disconnect())
               <div
                 v-for="field in overlayFields"
                 :key="'txt-' + field.name"
-                class="absolute overflow-hidden whitespace-nowrap pointer-events-none select-none"
+                class="absolute overflow-hidden pointer-events-none select-none"
+                :class="(field.lines ?? 1) > 1 ? 'whitespace-normal break-words' : 'whitespace-nowrap'"
                 :style="{
                   left:       field.x + '%',
                   top:        field.y + '%',
                   width:      field.w + '%',
                   fontSize:   overlayFontSizePx + 'px',
-                  lineHeight: 1,
+                  lineHeight: (field.lines ?? 1) > 1 && field.line_gap ? `${containerHeight * field.line_gap / 100}px` : 1,
                   transform:  `translateY(-${overlayFontSizePx * 0.82}px)`,
                   fontFamily: '\'Helvetica Neue\', Helvetica, Arial, sans-serif',
                   color:      focusedField === field.name ? '#4f46e5' : '#111827',
                   transition: 'color 0.15s',
                 }"
-              >{{ form.values[field.name] ?? '' }}</div>
+              >{{ displayValue(field) }}</div>
             </template>
           </div>
 

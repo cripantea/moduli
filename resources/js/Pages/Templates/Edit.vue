@@ -15,6 +15,9 @@ interface FieldSchema {
   x?: number
   y?: number
   w?: number
+  lines?: number
+  line_gap?: number
+  comb?: number
 }
 
 interface Template {
@@ -87,7 +90,7 @@ async function extractFields() {
 }
 
 // ── Manual field management ─────────────────────────────────────────────────
-const FIELD_TYPES = ['text', 'textarea', 'date', 'number']
+const FIELD_TYPES = ['text', 'textarea', 'date', 'number', 'checkbox']
 
 function addField() {
   form.fields_schema = [
@@ -217,13 +220,14 @@ function destroy() {
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
               </svg>
-              {{ extracting ? 'Estrazione...' : 'Estrai con AI' }}
+              {{ extracting ? 'Analisi del modulo in corso…' : 'Estrai con AI' }}
             </button>
             <button type="button" @click="addField" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
               + Aggiungi campo
             </button>
           </div>
         </div>
+        <p v-if="extracting" class="text-xs text-gray-500">L'AI sta leggendo il modulo: può richiedere fino a un minuto.</p>
         <p v-if="extractError" class="text-xs text-red-600">{{ extractError }}</p>
 
         <!-- Field rows -->
