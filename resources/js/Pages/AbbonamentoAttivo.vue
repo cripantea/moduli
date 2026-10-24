@@ -42,7 +42,7 @@ defineProps<{
         <div v-if="bookingUrl" class="mt-6 bg-white border border-gray-200 rounded-2xl p-6">
           <h2 class="text-lg font-bold text-gray-900">Prenota la tua call di onboarding</h2>
           <p class="mt-2 text-sm text-gray-600">
-            20 minuti in videochiamata: carichiamo insieme i tuoi moduli e li impostiamo perché siano pronti per il lavoro di ogni giorno.
+            30 minuti in videochiamata: carichiamo insieme i tuoi moduli e li impostiamo perché siano pronti per il lavoro di ogni giorno.
           </p>
           <a
             :href="bookingUrl"
