@@ -4,6 +4,7 @@ use App\Http\Controllers\CompiledModuleController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ModuleTemplateController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\Superadmin\SuperadminController;
 use App\Http\Controllers\Superadmin\TenantController;
 use Illuminate\Support\Facades\Route;
@@ -14,11 +15,18 @@ Route::get('/', function () {
     return Inertia::render('Landing');
 })->name('landing');
 
-// Tenant app
-// Il superadmin viene mandato al suo pannello: non vede né compila i moduli delle aziende.
-Route::middleware(['auth', 'active', 'verified', 'tenant'])->group(function () {
+// Stripe chiama questo indirizzo quando un pagamento va a buon fine o un abbonamento si chiude.
+Route::post('/stripe/webhook', [SubscriptionController::class, 'webhook'])->name('stripe.webhook');
+
+// Tenant app (il superadmin viene mandato al suo pannello).
+// Niente 'verified': chi si registra deve arrivare subito al primo modulo.
+Route::middleware(['auth', 'active', 'tenant'])->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/benvenuto', fn () => Inertia::render('Onboarding'))->name('onboarding');
+    Route::get('/abbonamento', [SubscriptionController::class, 'show'])->name('abbonamento');
+    Route::post('/abbonamento/checkout', [SubscriptionController::class, 'checkout'])->name('abbonamento.checkout');
+    Route::get('/abbonamento/attivo', [SubscriptionController::class, 'activated'])->name('abbonamento.attivo');
 
     // Templates
     Route::get('/templates', [ModuleTemplateController::class, 'index'])->name('templates.index');

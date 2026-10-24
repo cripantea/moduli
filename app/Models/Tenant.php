@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Tenant extends Model
 {
-    protected $fillable = ['name', 'plan', 'is_active', 'settings'];
+    protected $fillable = ['name', 'plan', 'is_active', 'settings', 'stripe_customer_id', 'stripe_subscription_id'];
 
     protected function casts(): array
     {
@@ -30,6 +30,14 @@ class Tenant extends Model
     public function compiledModules(): HasMany
     {
         return $this->hasMany(CompiledModule::class);
+    }
+
+    /**
+     * In prova: può caricare e compilare, ma per scaricare i PDF deve attivare l'abbonamento.
+     */
+    public function isTrial(): bool
+    {
+        return $this->plan === 'trial';
     }
 
     public function planLabel(): string

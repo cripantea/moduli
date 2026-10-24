@@ -33,10 +33,11 @@ class CompiledModuleController extends Controller
         ]);
     }
 
-    public function create(): Response
+    public function create(Request $request): Response
     {
         return Inertia::render('Compiled/Create', [
             'templates' => ModuleTemplate::orderBy('name')->get(['id', 'name', 'fields_schema', 'font_size', 'pdf_template_s3_key']),
+            'template'  => $request->integer('template') ?: null,
         ]);
     }
 
@@ -52,7 +53,7 @@ class CompiledModuleController extends Controller
         $filler = app(PdfFormFillerService::class);
         $s3Key  = $filler->compile($template, $request->values ?? []);
 
-        CompiledModule::create([
+        $compiled = CompiledModule::create([
             'tenant_id'          => $template->tenant_id,
             'module_template_id' => $template->id,
             'template_name'      => $template->name,
@@ -61,6 +62,10 @@ class CompiledModuleController extends Controller
             'original_filename'  => Str::slug($template->name) . '-' . now()->format('Ymd-His') . '.pdf',
         ]);
 
+        if (auth()->user()->tenant?->isTrial()) {
+            return redirect()->route('abbonamento', ['pronto' => $compiled->id]);
+        }
+
         return redirect()->route('compiled.index')->with('success', 'Modulo compilato e salvato.');
     }
 
@@ -68,6 +73,10 @@ class CompiledModuleController extends Controller
     {
         if (! $compiled->s3_key) {
             abort(404, 'File PDF non disponibile.');
+        }
+
+        if (auth()->user()->tenant?->isTrial()) {
+            return redirect()->route('abbonamento', ['pronto' => $compiled->id]);
         }
 
         $filler = app(PdfFormFillerService::class);

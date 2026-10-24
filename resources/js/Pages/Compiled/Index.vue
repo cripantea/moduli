@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
-import { Link, router } from '@inertiajs/vue3'
-import { ref, watch } from 'vue'
+import { Link, router, usePage } from '@inertiajs/vue3'
+import { computed, ref, watch } from 'vue'
+
+const trial = computed(() => Boolean((usePage().props.auth as { trial?: boolean }).trial))
 
 interface CompiledItem {
   id: number
@@ -135,8 +137,8 @@ function badgeColor(name: string): string {
           <!-- Actions -->
           <div class="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition">
             <a
-              :href="route('compiled.download', item.id)"
-              target="_blank"
+              :href="trial ? route('abbonamento', { pronto: item.id }) : route('compiled.download', item.id)"
+              :target="trial ? undefined : '_blank'"
               rel="noopener"
               class="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 font-medium transition"
             >

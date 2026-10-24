@@ -1,0 +1,168 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\CompiledModule;
+use App\Models\Tenant;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Inertia\Inertia;
+use Stripe\Exception\SignatureVerificationException;
+use Stripe\StripeClient;
+use Stripe\Webhook;
+use Symfony\Component\HttpFoundation\Response;
+
+/**
+ * Abbonamento Moduli a 29 €/mese con Stripe Checkout.
+ *
+ * Un'azienda in prova (plan = trial) diventa "pro" quando Stripe conferma il pagamento,
+ * e torna in prova solo se l'abbonamento Stripe collegato viene chiuso. Le aziende senza
+ * stripe_subscription_id (es. quelle create dal superadmin) non vengono mai toccate.
+ * L'account Stripe è condiviso con altri prodotti Fusion: si considerano solo i checkout
+ * con metadata app = moduli e gli abbonamenti già collegati a un'azienda.
+ */
+class SubscriptionController extends Controller
+{
+    public function show(Request $request)
+    {
+        if (! $request->user()->tenant?->isTrial()) {
+            return redirect()->route('compiled.index');
+        }
+
+        return Inertia::render('Abbonamento', [
+            'pronto' => $this->readyModule($request),
+            'prezzo' => 29,
+        ]);
+    }
+
+    public function checkout(Request $request)
+    {
+        $tenant = $request->user()->tenant;
+
+        if (! $tenant?->isTrial()) {
+            return redirect()->route('compiled.index');
+        }
+
+        if (! config('services.stripe.secret') || ! config('services.stripe.price')) {
+            return back()->with('error', 'Pagamento non ancora disponibile: riprova tra poco.');
+        }
+
+        $back = array_filter(['pronto' => $request->integer('pronto') ?: null]);
+        $successUrl = route('abbonamento.attivo', $back);
+        $successUrl .= (str_contains($successUrl, '?') ? '&' : '?') . 'session_id={CHECKOUT_SESSION_ID}';
+
+        $session = $this->stripe()->checkout->sessions->create([
+            'mode'                => 'subscription',
+            'line_items'          => [['price' => config('services.stripe.price'), 'quantity' => 1]],
+            'client_reference_id' => (string) $tenant->id,
+            'metadata'            => ['app' => 'moduli', 'tenant_id' => $tenant->id],
+            'subscription_data'   => ['metadata' => ['app' => 'moduli', 'tenant_id' => $tenant->id]],
+            ...($tenant->stripe_customer_id
+                ? ['customer' => $tenant->stripe_customer_id]
+                : ['customer_email' => $request->user()->email]),
+            'locale'                => 'it',
+            'allow_promotion_codes' => true,
+            'success_url'           => $successUrl,
+            'cancel_url'            => route('abbonamento', $back),
+        ]);
+
+        return Inertia::location($session->url);
+    }
+
+    /**
+     * Ritorno da Stripe dopo il pagamento: attiva subito (senza aspettare il webhook)
+     * e propone la prenotazione della call di onboarding.
+     */
+    public function activated(Request $request)
+    {
+        $tenant = $request->user()->tenant;
+
+        if ($tenant?->isTrial() && $request->filled('session_id') && config('services.stripe.secret')) {
+            try {
+                $session = $this->stripe()->checkout->sessions->retrieve($request->string('session_id'));
+
+                if (($session->metadata->app ?? null) === 'moduli'
+                    && $session->client_reference_id === (string) $tenant->id
+                    && $session->status === 'complete') {
+                    $this->activate($tenant, $session->customer, $session->subscription);
+                }
+            } catch (\Throwable $e) {
+                Log::warning('Stripe: verifica sessione al ritorno fallita', ['error' => $e->getMessage()]);
+            }
+        }
+
+        return Inertia::render('AbbonamentoAttivo', [
+            'attivo'     => ! $tenant?->fresh()?->isTrial(),
+            'pronto'     => $this->readyModule($request),
+            'bookingUrl' => config('services.onboarding.booking_url'),
+        ]);
+    }
+
+    public function webhook(Request $request): Response
+    {
+        try {
+            $event = Webhook::constructEvent(
+                $request->getContent(),
+                (string) $request->header('Stripe-Signature'),
+                (string) config('services.stripe.webhook_secret'),
+            );
+        } catch (SignatureVerificationException|\UnexpectedValueException) {
+            return response('Firma non valida', 400);
+        }
+
+        $object = $event->data->object;
+
+        switch ($event->type) {
+            case 'checkout.session.completed':
+                // Sullo stesso account Stripe passano anche CRM e FusionWA: solo i checkout di Moduli.
+                if (($object->metadata->app ?? null) !== 'moduli') {
+                    break;
+                }
+
+                $tenant = Tenant::find((int) ($object->metadata->tenant_id ?? 0));
+                if ($tenant && $object->mode === 'subscription') {
+                    $this->activate($tenant, $object->customer, $object->subscription);
+                }
+                break;
+
+            case 'customer.subscription.updated':
+            case 'customer.subscription.deleted':
+                $tenant = Tenant::where('stripe_subscription_id', $object->id)->first();
+                $ended = $event->type === 'customer.subscription.deleted'
+                    || in_array($object->status, ['canceled', 'unpaid', 'incomplete_expired'], true);
+
+                if ($tenant && $ended) {
+                    $tenant->update(['plan' => 'trial']);
+                    Log::info('Stripe: abbonamento chiuso, azienda tornata in prova', ['tenant' => $tenant->id]);
+                } elseif ($tenant && $object->status === 'active' && $tenant->isTrial()) {
+                    $tenant->update(['plan' => 'pro']);
+                }
+                break;
+        }
+
+        return response('ok');
+    }
+
+    private function activate(Tenant $tenant, ?string $customerId, ?string $subscriptionId): void
+    {
+        $tenant->update([
+            'plan'                   => 'pro',
+            'stripe_customer_id'     => $customerId ?? $tenant->stripe_customer_id,
+            'stripe_subscription_id' => $subscriptionId ?? $tenant->stripe_subscription_id,
+        ]);
+
+        Log::info('Stripe: abbonamento attivato', ['tenant' => $tenant->id]);
+    }
+
+    private function readyModule(Request $request): ?CompiledModule
+    {
+        return $request->integer('pronto')
+            ? CompiledModule::find($request->integer('pronto'), ['id', 'template_name', 'created_at'])
+            : null;
+    }
+
+    private function stripe(): StripeClient
+    {
+        return new StripeClient((string) config('services.stripe.secret'));
+    }
+}
