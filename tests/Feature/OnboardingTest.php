@@ -151,3 +151,39 @@ test('checkouts of other Fusion products on the same Stripe account are ignored'
 
     expect($user->tenant->fresh()->plan)->toBe('trial');
 });
+
+test('a paying customer sees the subscription button, a trial company does not', function () {
+    $paying = User::factory()->create([
+        'tenant_id' => Tenant::create(['name' => 'Cliente', 'plan' => 'pro', 'stripe_customer_id' => 'cus_1'])->id,
+    ]);
+
+    $this->actingAs($paying)->get('/compiled')
+        ->assertInertia(fn ($page) => $page->where('auth.billing', true));
+
+    $this->actingAs(trialUser())->get('/abbonamento')
+        ->assertInertia(fn ($page) => $page->where('auth.billing', false));
+});
+
+test('the subscription portal is not opened for companies without a Stripe customer', function () {
+    config(['services.stripe.secret' => 'sk_test_x']);
+    $manual = User::factory()->create([
+        'tenant_id' => Tenant::create(['name' => 'Cliente storico', 'plan' => 'pro'])->id,
+    ]);
+
+    $this->actingAs($manual)->from('/compiled')->post('/abbonamento/gestisci')
+        ->assertRedirect('/compiled')
+        ->assertSessionHas('error');
+});
+
+test('registration is reported once to the Meta pixel', function () {
+    $this->post('/register', [
+        'company' => 'Nuova Srl', 'name' => 'Mario', 'email' => 'mario@example.com',
+        'password' => 'password', 'password_confirmation' => 'password',
+    ]);
+
+    $this->get('/benvenuto')
+        ->assertInertia(fn ($page) => $page->where('track.0.event', 'CompleteRegistration'));
+
+    $this->get('/benvenuto')
+        ->assertInertia(fn ($page) => $page->where('track', []));
+});

@@ -1,7 +1,9 @@
 import '../css/app.css';
 import './bootstrap';
 
-import { createInertiaApp } from '@inertiajs/vue3';
+import { createInertiaApp, router } from '@inertiajs/vue3';
+import CookieBanner from './Components/CookieBanner.vue';
+import { pageView, track, type TrackEvent } from './tracking';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createApp, DefineComponent, h } from 'vue';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
@@ -16,7 +18,7 @@ createInertiaApp({
             import.meta.glob<DefineComponent>('./Pages/**/*.vue'),
         ),
     setup({ el, App, props, plugin }) {
-        createApp({ render: () => h(App, props) })
+        createApp({ render: () => [h(App, props), h(CookieBanner)] })
             .use(plugin)
             .use(ZiggyVue)
             .mount(el);
@@ -24,4 +26,12 @@ createInertiaApp({
     progress: {
         color: '#4B5563',
     },
+});
+
+// Pixel Meta: una visualizzazione per pagina più gli eventi indicati dal server (registrazione, acquisto).
+router.on('navigate', (event) => {
+    pageView();
+    for (const e of (event.detail.page.props.track as TrackEvent[] | undefined) ?? []) {
+        track(e);
+    }
 });

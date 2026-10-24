@@ -18,6 +18,12 @@ function isActive(href: string): boolean {
   return currentPath.value.startsWith(path)
 }
 
+const billing = computed(() => (page.props.auth as { billing?: boolean }).billing)
+
+function manageSubscription() {
+  router.post(route('abbonamento.gestisci'))
+}
+
 function logout() {
   router.post(route('logout'))
 }
@@ -128,6 +134,18 @@ const initials = computed(() =>
             <p class="text-[10px] text-gray-400 truncate">{{ user.email }}</p>
           </div>
         </Link>
+
+        <!-- Abbonamento: disdetta, carta e fatture sul portale Stripe -->
+        <button
+          v-if="billing"
+          @click="manageSubscription"
+          class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition"
+        >
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+          </svg>
+          Abbonamento
+        </button>
 
         <!-- Logout — explicit, always visible -->
         <button

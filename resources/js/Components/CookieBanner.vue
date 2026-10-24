@@ -1,0 +1,34 @@
+<script setup lang="ts">
+import { consent, pixelId, setConsent, pageView } from '@/tracking'
+import { ref } from 'vue'
+
+const visible = ref(!!pixelId && consent() === null)
+
+function choose(value: 'si' | 'no') {
+  setConsent(value)
+  if (value === 'si') pageView()
+  visible.value = false
+}
+</script>
+
+<template>
+  <div
+    v-if="visible"
+    class="fixed inset-x-0 bottom-0 z-50 p-4 sm:bottom-4 sm:left-4 sm:right-auto sm:max-w-sm"
+  >
+    <div class="bg-white border border-gray-200 rounded-2xl shadow-xl p-5">
+      <p class="text-sm text-gray-700">
+        Usiamo cookie di Meta per capire quali nostre pubblicità funzionano. Nessun altro uso.
+        <a href="https://fusionsoft.it/privacy" target="_blank" rel="noopener" class="text-indigo-600 underline">Privacy</a>
+      </p>
+      <div class="mt-4 grid grid-cols-2 gap-2">
+        <button type="button" class="px-4 py-2 rounded-lg border border-gray-300 text-sm font-semibold text-gray-700 hover:bg-gray-50" @click="choose('no')">
+          Rifiuta
+        </button>
+        <button type="button" class="px-4 py-2 rounded-lg border border-gray-300 text-sm font-semibold text-gray-700 hover:bg-gray-50" @click="choose('si')">
+          Accetta
+        </button>
+      </div>
+    </div>
+  </div>
+</template>

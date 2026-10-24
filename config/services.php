@@ -43,6 +43,11 @@ return [
         'price'          => env('STRIPE_PRICE_ID'),
     ],
 
+    // Pixel Meta: si carica solo dopo il consenso ai cookie (banner nel sito).
+    'meta' => [
+        'pixel_id' => env('META_PIXEL_ID'),
+    ],
+
     // Pagina di prenotazione della call di onboarding (calendario CRM Fusion).
     'onboarding' => [
         'booking_url' => env('ONBOARDING_BOOKING_URL'),

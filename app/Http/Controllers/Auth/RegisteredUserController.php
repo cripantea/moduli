@@ -62,6 +62,8 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
+        $request->session()->put('track', [['event' => 'CompleteRegistration']]);
+
         return redirect(route('dashboard', absolute: false));
     }
 }

@@ -27,6 +27,7 @@ Route::middleware(['auth', 'active', 'tenant'])->group(function () {
     Route::get('/abbonamento', [SubscriptionController::class, 'show'])->name('abbonamento');
     Route::post('/abbonamento/checkout', [SubscriptionController::class, 'checkout'])->name('abbonamento.checkout');
     Route::get('/abbonamento/attivo', [SubscriptionController::class, 'activated'])->name('abbonamento.attivo');
+    Route::post('/abbonamento/gestisci', [SubscriptionController::class, 'portal'])->name('abbonamento.gestisci');
 
     // Templates
     Route::get('/templates', [ModuleTemplateController::class, 'index'])->name('templates.index');

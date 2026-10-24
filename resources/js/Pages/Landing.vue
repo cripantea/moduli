@@ -24,9 +24,6 @@ const scrollTo = (id: string) => {
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
 }
 
-// ── Pricing toggle ──────────────────────────────────────────────────────────
-const annual = ref(false)
-
 // ── FAQ accordion ───────────────────────────────────────────────────────────
 const openFaq = ref<number | null>(null)
 const toggleFaq = (i: number) => { openFaq.value = openFaq.value === i ? null : i }
@@ -145,7 +142,11 @@ const faqs = [
   },
   {
     q: "Posso annullare l'abbonamento?",
-    a: "Sì, puoi annullare in qualsiasi momento senza penali. L'accesso rimane attivo fino alla fine del periodo già pagato.",
+    a: "Sì, con un clic da \"Abbonamento\" nel menu, senza penali. L'accesso rimane attivo fino alla fine del mese già pagato.",
+  },
+  {
+    q: 'E se non fa per me?',
+    a: 'Entro 30 giorni dal primo pagamento ti rimborsiamo tutto, senza domande. Basta scriverci.',
   },
   {
     q: 'Serve installare qualcosa?',
@@ -201,7 +202,7 @@ const faqs = [
           <Link
             href="/register"
             class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
-          >Provalo gratis</Link>
+          >Carica il tuo modulo</Link>
         </div>
 
         <!-- Mobile burger -->
@@ -229,7 +230,7 @@ const faqs = [
       <button @click="scrollTo('faq')" class="block w-full text-left px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg">FAQ</button>
       <div class="pt-3 border-t border-gray-100 flex flex-col gap-2">
         <Link href="/login" class="block px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg font-medium">Accedi</Link>
-        <Link href="/register" class="block px-4 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-lg text-center hover:bg-indigo-700 transition-colors">Provalo gratis</Link>
+        <Link href="/register" class="block px-4 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-lg text-center hover:bg-indigo-700 transition-colors">Carica il tuo modulo</Link>
       </div>
     </div>
   </nav>
@@ -245,7 +246,7 @@ const faqs = [
         <div class="max-w-xl">
           <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 border border-indigo-100 rounded-full text-xs font-medium text-indigo-700 mb-6">
             <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 inline-block"></span>
-            Nessuna carta di credito richiesta
+            Soddisfatto o rimborsato entro 30 giorni
           </div>
 
           <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-900 leading-tight tracking-tight">
@@ -261,7 +262,7 @@ const faqs = [
               href="/register"
               class="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-sm transition-colors text-sm"
             >
-              Provalo gratis
+              Carica il tuo modulo
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
               </svg>
@@ -278,7 +279,7 @@ const faqs = [
             </button>
           </div>
 
-          <p class="mt-4 text-xs text-gray-400">Prova gratuita · Nessun impegno · Disdici quando vuoi</p>
+          <p class="mt-4 text-xs text-gray-400">29 €/mese · Disdici quando vuoi · Rimborso entro 30 giorni</p>
         </div>
 
         <!-- Right: interactive product demo -->
@@ -686,27 +687,7 @@ const faqs = [
       <div class="text-center mb-10">
         <p class="text-indigo-600 text-sm font-semibold uppercase tracking-widest mb-3">Prezzi</p>
         <h2 class="text-3xl sm:text-4xl font-bold text-gray-900">Semplice. Senza sorprese.</h2>
-        <p class="mt-3 text-gray-500">Un piano. Tutto incluso. Nessun costo di attivazione.</p>
-      </div>
-
-      <!-- Toggle -->
-      <div class="flex items-center justify-center gap-3 mb-8">
-        <span :class="!annual ? 'text-gray-900 font-semibold' : 'text-gray-400'" class="text-sm transition-colors">Mensile</span>
-        <button
-          @click="annual = !annual"
-          :class="annual ? 'bg-indigo-600' : 'bg-gray-200'"
-          class="relative w-11 h-6 rounded-full transition-colors focus:outline-none"
-          aria-label="Alterna fatturazione annuale"
-        >
-          <span
-            :class="annual ? 'translate-x-5' : 'translate-x-1'"
-            class="absolute top-1 left-0 w-4 h-4 rounded-full bg-white shadow transition-transform"
-          ></span>
-        </button>
-        <span :class="annual ? 'text-gray-900 font-semibold' : 'text-gray-400'" class="text-sm transition-colors">
-          Annuale
-          <span class="ml-1.5 inline-block px-1.5 py-0.5 text-[10px] font-bold bg-green-100 text-green-700 rounded-full">-2 mesi</span>
-        </span>
+        <p class="mt-3 text-gray-500">Un piano. Tutto incluso. Se entro 30 giorni non fa per te, ti rimborsiamo.</p>
       </div>
 
       <!-- Pricing card -->
@@ -725,22 +706,17 @@ const faqs = [
 
         <div class="flex items-baseline gap-2 mb-1">
           <span class="text-5xl font-extrabold text-gray-900">
-            {{ annual ? '€24' : '€29' }}
+            €29
           </span>
           <span class="text-gray-500 text-sm">/mese</span>
         </div>
-        <p v-if="annual" class="text-sm text-green-600 font-medium mb-6">
-          Fatturato €290/anno · Risparmi €58 rispetto al piano mensile
-        </p>
-        <p v-else class="text-sm text-gray-400 mb-6">
-          Oppure €290/anno — equivale a circa 2 mesi gratuiti
-        </p>
+        <p class="text-sm text-gray-400 mb-6">IVA inclusa · Disdici con un clic</p>
 
         <Link
           href="/register"
           class="block w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-center text-sm transition-colors shadow-sm mb-6"
         >
-          Inizia gratis
+          Inizia ora
         </Link>
 
         <ul class="space-y-3">
@@ -756,7 +732,7 @@ const faqs = [
       </div>
 
       <p class="text-center text-xs text-gray-400 mt-5">
-        Disdici in qualsiasi momento. Nessuna penale.
+        Soddisfatto o rimborsato: se entro 30 giorni non fa per te, ti restituiamo i soldi.
       </p>
     </div>
   </section>
@@ -808,12 +784,12 @@ const faqs = [
         href="/register"
         class="inline-flex items-center gap-2.5 px-8 py-4 bg-white hover:bg-gray-50 text-indigo-700 font-bold rounded-xl text-sm shadow-lg transition-colors"
       >
-        Provalo gratis
+        Carica il tuo modulo
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
         </svg>
       </Link>
-      <p class="mt-4 text-indigo-300 text-sm">Nessuna carta di credito · Disdici quando vuoi</p>
+      <p class="mt-4 text-indigo-300 text-sm">29 €/mese · Disdici quando vuoi · Rimborso entro 30 giorni</p>
     </div>
   </section>
 
@@ -858,7 +834,7 @@ const faqs = [
           <p class="text-xs font-semibold uppercase tracking-widest text-gray-600 mb-4">Account</p>
           <ul class="space-y-2.5 text-sm">
             <li><Link href="/login" class="hover:text-white transition-colors">Accedi</Link></li>
-            <li><Link href="/register" class="hover:text-white transition-colors">Inizia gratis</Link></li>
+            <li><Link href="/register" class="hover:text-white transition-colors">Inizia ora</Link></li>
           </ul>
         </div>
 

@@ -40,7 +40,7 @@ const submit = () => {
         <span class="text-sm font-bold text-gray-900">Fusion Moduli</span>
       </Link>
       <Link href="/register" class="text-sm text-indigo-600 font-semibold hover:underline">
-        Inizia gratis →
+        Crea un account →
       </Link>
     </div>
 
@@ -131,7 +131,7 @@ const submit = () => {
 
         <p class="text-center text-sm text-gray-500 mt-6">
           Non hai un account?
-          <Link href="/register" class="text-indigo-600 font-semibold hover:underline">Inizia gratis</Link>
+          <Link href="/register" class="text-indigo-600 font-semibold hover:underline">Crea un account</Link>
         </p>
 
         <div class="mt-6 flex justify-center">

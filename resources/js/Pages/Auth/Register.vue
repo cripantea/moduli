@@ -46,7 +46,7 @@ const submit = () => {
 
         <div class="text-center mb-8">
           <h1 class="text-2xl font-bold text-gray-900">Crea il tuo account</h1>
-          <p class="text-sm text-gray-500 mt-1.5">Nessuna carta di credito richiesta</p>
+          <p class="text-sm text-gray-500 mt-1.5">Carica il tuo primo modulo in 2 minuti</p>
         </div>
 
         <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">

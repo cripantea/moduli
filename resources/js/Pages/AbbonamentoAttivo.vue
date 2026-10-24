@@ -54,7 +54,12 @@ defineProps<{
           </a>
         </div>
 
-        <Link :href="route('compiled.index')" class="mt-6 block text-center text-sm text-gray-500 hover:text-gray-800">
+        <p class="mt-6 text-center text-xs text-gray-500">
+          Hai 30 giorni per decidere: se non fa per te ti rimborsiamo tutto.
+          L'abbonamento lo gestisci (o disdici) quando vuoi da "Abbonamento" nel menu.
+        </p>
+
+        <Link :href="route('compiled.index')" class="mt-4 block text-center text-sm text-gray-500 hover:text-gray-800">
           Vai ai tuoi moduli
         </Link>
       </div>

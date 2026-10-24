@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\CompiledModule;
 use App\Models\Tenant;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Stripe\Exception\SignatureVerificationException;
@@ -76,15 +77,25 @@ class SubscriptionController extends Controller
     public function activated(Request $request)
     {
         $tenant = $request->user()->tenant;
+        $track = [];
 
-        if ($tenant?->isTrial() && $request->filled('session_id') && config('services.stripe.secret')) {
+        if ($tenant && $request->filled('session_id') && config('services.stripe.secret')) {
             try {
                 $session = $this->stripe()->checkout->sessions->retrieve($request->string('session_id'));
 
                 if (($session->metadata->app ?? null) === 'moduli'
                     && $session->client_reference_id === (string) $tenant->id
                     && $session->status === 'complete') {
-                    $this->activate($tenant, $session->customer, $session->subscription);
+                    if ($tenant->isTrial()) {
+                        $this->activate($tenant, $session->customer, $session->subscription);
+                    }
+
+                    // Il browser non lo ripete per la stessa sessione e Meta deduplica sull'eventID.
+                    $track[] = [
+                        'event'   => 'Purchase',
+                        'params'  => ['value' => ($session->amount_total ?? 2900) / 100, 'currency' => 'EUR'],
+                        'eventID' => $session->id,
+                    ];
                 }
             } catch (\Throwable $e) {
                 Log::warning('Stripe: verifica sessione al ritorno fallita', ['error' => $e->getMessage()]);
@@ -95,7 +106,68 @@ class SubscriptionController extends Controller
             'attivo'     => ! $tenant?->fresh()?->isTrial(),
             'pronto'     => $this->readyModule($request),
             'bookingUrl' => config('services.onboarding.booking_url'),
+            'track'      => $track,
         ]);
+    }
+
+    /**
+     * Portale clienti Stripe: disdetta (a fine periodo), carta e fatture, senza dover scrivere a noi.
+     * Usa una configurazione dedicata a Moduli, così non tocca quella degli altri prodotti Fusion.
+     */
+    public function portal(Request $request)
+    {
+        $tenant = $request->user()->tenant;
+
+        if (! $tenant?->stripe_customer_id || ! config('services.stripe.secret')) {
+            return back()->with('error', 'Nessun abbonamento da gestire.');
+        }
+
+        try {
+            $session = $this->stripe()->billingPortal->sessions->create([
+                'customer'      => $tenant->stripe_customer_id,
+                'configuration' => $this->portalConfiguration(),
+                'locale'        => 'it',
+                'return_url'    => route('compiled.index'),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Stripe: portale clienti non disponibile', ['tenant' => $tenant->id, 'error' => $e->getMessage()]);
+
+            return back()->with('error', 'Al momento non riusciamo ad aprire la gestione abbonamento. Scrivici e lo sistemiamo subito.');
+        }
+
+        return Inertia::location($session->url);
+    }
+
+    private function portalConfiguration(): string
+    {
+        return Cache::rememberForever('stripe_portal_configuration', function () {
+            foreach ($this->stripe()->billingPortal->configurations->all(['active' => true, 'limit' => 100])->autoPagingIterator() as $configuration) {
+                if (($configuration->metadata->app ?? null) === 'moduli') {
+                    return $configuration->id;
+                }
+            }
+
+            return $this->stripe()->billingPortal->configurations->create([
+                'metadata'         => ['app' => 'moduli'],
+                'business_profile' => [
+                    'headline'           => 'Fusion Moduli: gestisci il tuo abbonamento',
+                    'privacy_policy_url' => 'https://fusionsoft.it/privacy',
+                ],
+                'features' => [
+                    'invoice_history'       => ['enabled' => true],
+                    'payment_method_update' => ['enabled' => true],
+                    'customer_update'       => ['enabled' => true, 'allowed_updates' => ['email', 'address', 'tax_id']],
+                    'subscription_cancel'   => [
+                        'enabled'             => true,
+                        'mode'                => 'at_period_end',
+                        'cancellation_reason' => [
+                            'enabled' => true,
+                            'options' => ['too_expensive', 'missing_features', 'unused', 'switched_service', 'other'],
+                        ],
+                    ],
+                ],
+            ])->id;
+        });
     }
 
     public function webhook(Request $request): Response
