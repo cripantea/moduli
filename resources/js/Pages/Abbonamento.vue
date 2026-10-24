@@ -1,11 +1,22 @@
 <script setup lang="ts">
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
-import { Head } from '@inertiajs/vue3'
+import { Head, router, usePage } from '@inertiajs/vue3'
+import { computed, ref } from 'vue'
 
-defineProps<{
+const props = defineProps<{
   pronto: { id: number; template_name: string; created_at: string } | null
   prezzo: number
 }>()
+
+const loading = ref(false)
+const flashError = computed(() => (usePage().props.flash as { error?: string | null }).error)
+
+function checkout() {
+  loading.value = true
+  router.post(route('abbonamento.checkout', props.pronto ? { pronto: props.pronto.id } : {}), {}, {
+    onFinish: () => { loading.value = false },
+  })
+}
 </script>
 
 <template>
@@ -42,14 +53,16 @@ defineProps<{
           <li>✓ Nessun vincolo: disdici quando vuoi</li>
         </ul>
 
-        <!-- Il pagamento (Stripe) e la prenotazione della call arrivano nel passo 2. -->
         <button
           type="button"
-          disabled
-          class="mt-6 w-full px-6 py-3 rounded-xl bg-indigo-600 text-white text-sm font-semibold opacity-50 cursor-not-allowed"
+          :disabled="loading"
+          class="mt-6 w-full px-6 py-3 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 transition"
+          @click="checkout"
         >
-          Attiva e scarica
+          {{ loading ? 'Apro il pagamento…' : 'Attiva e scarica' }}
         </button>
+        <p class="mt-3 text-center text-xs text-gray-500">Pagamento sicuro con Stripe · carta o Apple/Google Pay</p>
+        <p v-if="flashError" class="mt-3 text-center text-sm text-red-600">{{ flashError }}</p>
       </div>
     </div>
   </AuthenticatedLayout>

@@ -74,3 +74,63 @@ test('a paying tenant does not see the subscription page', function () {
 
     $this->actingAs($user)->get('/abbonamento')->assertRedirect(route('compiled.index', absolute: false));
 });
+
+// ── Pagamento Stripe ─────────────────────────────────────────────
+
+function stripeWebhook(array $event): \Illuminate\Testing\TestResponse
+{
+    config(['services.stripe.webhook_secret' => 'whsec_test']);
+    $payload = json_encode($event);
+    $ts = time();
+    $sig = hash_hmac('sha256', "{$ts}.{$payload}", 'whsec_test');
+
+    return test()->call('POST', '/stripe/webhook', [], [], [], [
+        'HTTP_STRIPE_SIGNATURE' => "t={$ts},v1={$sig}",
+        'CONTENT_TYPE'          => 'application/json',
+    ], $payload);
+}
+
+test('checkout is not offered while Stripe is not configured', function () {
+    config(['services.stripe.secret' => null, 'services.stripe.price' => null]);
+    $user = trialUser();
+
+    $this->actingAs($user)->from('/abbonamento')->post('/abbonamento/checkout')
+        ->assertRedirect('/abbonamento')
+        ->assertSessionHas('error');
+});
+
+test('the webhook rejects calls without a valid Stripe signature', function () {
+    config(['services.stripe.webhook_secret' => 'whsec_test']);
+
+    $this->postJson('/stripe/webhook', ['type' => 'checkout.session.completed'])->assertStatus(400);
+});
+
+test('a completed checkout activates the company', function () {
+    $user = trialUser();
+
+    stripeWebhook([
+        'id' => 'evt_1', 'object' => 'event', 'type' => 'checkout.session.completed',
+        'data' => ['object' => [
+            'object' => 'checkout.session', 'mode' => 'subscription',
+            'client_reference_id' => (string) $user->tenant_id,
+            'customer' => 'cus_123', 'subscription' => 'sub_123',
+        ]],
+    ])->assertOk();
+
+    $tenant = $user->tenant->fresh();
+    expect($tenant->plan)->toBe('pro')
+        ->and($tenant->stripe_subscription_id)->toBe('sub_123');
+});
+
+test('a cancelled subscription puts back in trial only the company it belongs to', function () {
+    $paying = Tenant::create(['name' => 'Cliente Stripe', 'plan' => 'pro', 'stripe_subscription_id' => 'sub_999']);
+    $manual = Tenant::create(['name' => 'Cliente storico', 'plan' => 'pro']);
+
+    stripeWebhook([
+        'id' => 'evt_2', 'object' => 'event', 'type' => 'customer.subscription.deleted',
+        'data' => ['object' => ['object' => 'subscription', 'id' => 'sub_999', 'status' => 'canceled']],
+    ])->assertOk();
+
+    expect($paying->fresh()->plan)->toBe('trial')
+        ->and($manual->fresh()->plan)->toBe('pro');
+});

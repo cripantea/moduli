@@ -36,6 +36,18 @@ return [
     ],
 
     // Provider per l'estrazione AI dei campi: anthropic | deepseek
+    // Abbonamento Moduli (29 €/mese) con Stripe Checkout.
+    'stripe' => [
+        'secret'         => env('STRIPE_SECRET'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+        'price'          => env('STRIPE_PRICE_ID'),
+    ],
+
+    // Pagina di prenotazione della call di onboarding (calendario CRM Fusion).
+    'onboarding' => [
+        'booking_url' => env('ONBOARDING_BOOKING_URL'),
+    ],
+
     'ai' => [
         'provider' => env('AI_PROVIDER', 'anthropic'),
     ],

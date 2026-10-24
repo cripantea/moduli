@@ -69,25 +69,6 @@ class CompiledModuleController extends Controller
         return redirect()->route('compiled.index')->with('success', 'Modulo compilato e salvato.');
     }
 
-    /**
-     * Pagina di attivazione: chi è in prova arriva qui dopo aver compilato o quando prova a scaricare.
-     */
-    public function subscription(Request $request): Response|RedirectResponse
-    {
-        if (! auth()->user()->tenant?->isTrial()) {
-            return redirect()->route('compiled.index');
-        }
-
-        $ready = $request->integer('pronto')
-            ? CompiledModule::find($request->integer('pronto'), ['id', 'template_name', 'created_at'])
-            : null;
-
-        return Inertia::render('Abbonamento', [
-            'pronto' => $ready,
-            'prezzo' => 29,
-        ]);
-    }
-
     public function download(CompiledModule $compiled)
     {
         if (! $compiled->s3_key) {
