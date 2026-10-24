@@ -18,6 +18,8 @@ use Symfony\Component\HttpFoundation\Response;
  * Un'azienda in prova (plan = trial) diventa "pro" quando Stripe conferma il pagamento,
  * e torna in prova solo se l'abbonamento Stripe collegato viene chiuso. Le aziende senza
  * stripe_subscription_id (es. quelle create dal superadmin) non vengono mai toccate.
+ * L'account Stripe è condiviso con altri prodotti Fusion: si considerano solo i checkout
+ * con metadata app = moduli e gli abbonamenti già collegati a un'azienda.
  */
 class SubscriptionController extends Controller
 {
@@ -53,8 +55,8 @@ class SubscriptionController extends Controller
             'mode'                => 'subscription',
             'line_items'          => [['price' => config('services.stripe.price'), 'quantity' => 1]],
             'client_reference_id' => (string) $tenant->id,
-            'metadata'            => ['tenant_id' => $tenant->id],
-            'subscription_data'   => ['metadata' => ['tenant_id' => $tenant->id]],
+            'metadata'            => ['app' => 'moduli', 'tenant_id' => $tenant->id],
+            'subscription_data'   => ['metadata' => ['app' => 'moduli', 'tenant_id' => $tenant->id]],
             ...($tenant->stripe_customer_id
                 ? ['customer' => $tenant->stripe_customer_id]
                 : ['customer_email' => $request->user()->email]),
@@ -79,7 +81,9 @@ class SubscriptionController extends Controller
             try {
                 $session = $this->stripe()->checkout->sessions->retrieve($request->string('session_id'));
 
-                if ($session->client_reference_id === (string) $tenant->id && $session->status === 'complete') {
+                if (($session->metadata->app ?? null) === 'moduli'
+                    && $session->client_reference_id === (string) $tenant->id
+                    && $session->status === 'complete') {
                     $this->activate($tenant, $session->customer, $session->subscription);
                 }
             } catch (\Throwable $e) {
@@ -110,7 +114,12 @@ class SubscriptionController extends Controller
 
         switch ($event->type) {
             case 'checkout.session.completed':
-                $tenant = Tenant::find((int) ($object->client_reference_id ?? 0));
+                // Sullo stesso account Stripe passano anche CRM e FusionWA: solo i checkout di Moduli.
+                if (($object->metadata->app ?? null) !== 'moduli') {
+                    break;
+                }
+
+                $tenant = Tenant::find((int) ($object->metadata->tenant_id ?? 0));
                 if ($tenant && $object->mode === 'subscription') {
                     $this->activate($tenant, $object->customer, $object->subscription);
                 }

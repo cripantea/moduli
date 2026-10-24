@@ -113,6 +113,7 @@ test('a completed checkout activates the company', function () {
         'data' => ['object' => [
             'object' => 'checkout.session', 'mode' => 'subscription',
             'client_reference_id' => (string) $user->tenant_id,
+            'metadata' => ['app' => 'moduli', 'tenant_id' => (string) $user->tenant_id],
             'customer' => 'cus_123', 'subscription' => 'sub_123',
         ]],
     ])->assertOk();
@@ -133,4 +134,20 @@ test('a cancelled subscription puts back in trial only the company it belongs to
 
     expect($paying->fresh()->plan)->toBe('trial')
         ->and($manual->fresh()->plan)->toBe('pro');
+});
+
+test('checkouts of other Fusion products on the same Stripe account are ignored', function () {
+    $user = trialUser();
+
+    stripeWebhook([
+        'id' => 'evt_3', 'object' => 'event', 'type' => 'checkout.session.completed',
+        'data' => ['object' => [
+            'object' => 'checkout.session', 'mode' => 'subscription',
+            'client_reference_id' => (string) $user->tenant_id,
+            'metadata' => ['tenant_id' => (string) $user->tenant_id],
+            'customer' => 'cus_crm', 'subscription' => 'sub_crm',
+        ]],
+    ])->assertOk();
+
+    expect($user->tenant->fresh()->plan)->toBe('trial');
 });
