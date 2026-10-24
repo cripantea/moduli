@@ -43,14 +43,15 @@ test('a user without tenant sees nothing and is logged out', function () {
     expect(ModuleTemplate::count())->toBe(0);
 });
 
-test('superadmin still sees legacy templates without tenant', function () {
+test('superadmin manages companies but cannot open or compile their modules', function () {
     $admin = User::factory()->superadmin()->create();
     $legacy = templateFor(null, 'templates/legacy.pdf');
 
-    $this->actingAs($admin)->get("/templates/{$legacy->id}/edit")->assertOk();
+    $this->actingAs($admin)->get('/dashboard')->assertRedirect(route('superadmin.dashboard', absolute: false));
+    $this->actingAs($admin)->get('/compiled/create')->assertRedirect(route('superadmin.dashboard', absolute: false));
+    $this->actingAs($admin)->get("/templates/{$legacy->id}/edit")->assertRedirect(route('superadmin.dashboard', absolute: false));
+    $this->actingAs($admin)->get('/superadmin')->assertOk();
 });
-
-// ── Dati sensibili nel frontend ──────────────────────────────────
 
 test('password hash and remember token never reach the frontend', function () {
     $user = User::factory()->create();

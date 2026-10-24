@@ -85,8 +85,8 @@
               {{ flash }}
             </div>
           </Transition>
-          <Link :href="route('dashboard')" class="text-xs text-slate-400 hover:text-slate-600 transition-colors">
-            ← Esci dal pannello
+          <Link :href="route('logout')" method="post" as="button" class="text-xs text-slate-400 hover:text-slate-600 transition-colors">
+            Esci
           </Link>
         </div>
       </header>

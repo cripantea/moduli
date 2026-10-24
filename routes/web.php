@@ -15,7 +15,8 @@ Route::get('/', function () {
 })->name('landing');
 
 // Tenant app
-Route::middleware(['auth', 'active', 'verified'])->group(function () {
+// Il superadmin viene mandato al suo pannello: non vede né compila i moduli delle aziende.
+Route::middleware(['auth', 'active', 'verified', 'tenant'])->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 

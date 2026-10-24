@@ -36,7 +36,7 @@ const initials = computed(() =>
   <div class="min-h-screen bg-gray-50 flex">
 
     <!-- ── Sidebar ──────────────────────────────────────── -->
-    <aside class="w-56 bg-white border-r border-gray-100 flex flex-col shrink-0">
+    <aside class="w-56 h-screen sticky top-0 bg-white border-r border-gray-100 flex flex-col shrink-0">
 
       <!-- Logo -->
       <div class="h-14 flex items-center px-4 border-b border-gray-100 gap-2">
