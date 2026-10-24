@@ -14,10 +14,13 @@ Route::get('/', function () {
     return Inertia::render('Landing');
 })->name('landing');
 
-// Tenant app
-Route::middleware(['auth', 'active', 'verified'])->group(function () {
+// Tenant app (il superadmin viene mandato al suo pannello).
+// Niente 'verified': chi si registra deve arrivare subito al primo modulo.
+Route::middleware(['auth', 'active', 'tenant'])->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/benvenuto', fn () => Inertia::render('Onboarding'))->name('onboarding');
+    Route::get('/abbonamento', [CompiledModuleController::class, 'subscription'])->name('abbonamento');
 
     // Templates
     Route::get('/templates', [ModuleTemplateController::class, 'index'])->name('templates.index');

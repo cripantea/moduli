@@ -37,7 +37,7 @@ test('registration creates a dedicated tenant with the user as admin', function 
         ->and($user->role)->toBe('admin');
 });
 
-test('newly registered users must verify their email before using the app', function () {
+test('newly registered users start from onboarding without verifying the email first', function () {
     $this->post('/register', [
         'company' => 'Acme Srl',
         'name' => 'Test User',
@@ -46,5 +46,6 @@ test('newly registered users must verify their email before using the app', func
         'password_confirmation' => 'password',
     ]);
 
-    $this->get('/templates')->assertRedirect(route('verification.notice', absolute: false));
+    $this->get('/dashboard')->assertRedirect(route('onboarding', absolute: false));
+    $this->get('/benvenuto')->assertOk();
 });

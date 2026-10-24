@@ -34,6 +34,10 @@ class ModuleTemplateController extends Controller
         $data['tenant_id'] = auth()->user()->tenant_id;
         $template = ModuleTemplate::create($data);
 
+        if ($request->boolean('onboarding')) {
+            return redirect()->route('compiled.create', ['template' => $template->id]);
+        }
+
         return redirect()->route('templates.edit', $template)->with('success', 'Template creato.');
     }
 

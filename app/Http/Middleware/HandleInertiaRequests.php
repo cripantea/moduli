@@ -22,6 +22,7 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user()?->only([
                     'id', 'name', 'email', 'role', 'tenant_id', 'is_active', 'email_verified_at',
                 ]),
+                'trial' => (bool) $request->user()?->tenant?->isTrial(),
             ],
             'flash' => [
                 'success' => $request->session()->get('success'),

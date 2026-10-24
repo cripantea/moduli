@@ -32,6 +32,14 @@ class Tenant extends Model
         return $this->hasMany(CompiledModule::class);
     }
 
+    /**
+     * In prova: può caricare e compilare, ma per scaricare i PDF deve attivare l'abbonamento.
+     */
+    public function isTrial(): bool
+    {
+        return $this->plan === 'trial';
+    }
+
     public function planLabel(): string
     {
         return match ($this->plan) {
