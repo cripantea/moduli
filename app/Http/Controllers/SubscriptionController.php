@@ -59,8 +59,27 @@ class SubscriptionController extends Controller
             'metadata'            => ['app' => 'moduli', 'tenant_id' => $tenant->id],
             'subscription_data'   => ['metadata' => ['app' => 'moduli', 'tenant_id' => $tenant->id]],
             ...($tenant->stripe_customer_id
-                ? ['customer' => $tenant->stripe_customer_id]
+                ? ['customer' => $tenant->stripe_customer_id, 'customer_update' => ['name' => 'auto', 'address' => 'auto']]
                 : ['customer_email' => $request->user()->email]),
+            // Dati per la fattura elettronica: Stripe chiede indirizzo e, per le aziende, ragione sociale e P.IVA.
+            'billing_address_collection' => 'required',
+            'tax_id_collection'          => ['enabled' => true],
+            'custom_fields'              => [
+                [
+                    'key'      => 'sdi',
+                    'label'    => ['type' => 'custom', 'custom' => 'Codice destinatario o PEC'],
+                    'type'     => 'text',
+                    'optional' => true,
+                    'text'     => ['maximum_length' => 100],
+                ],
+                [
+                    'key'      => 'codice_fiscale',
+                    'label'    => ['type' => 'custom', 'custom' => 'Codice fiscale (se diverso dalla P.IVA)'],
+                    'type'     => 'text',
+                    'optional' => true,
+                    'text'     => ['minimum_length' => 11, 'maximum_length' => 16],
+                ],
+            ],
             'locale'                => 'it',
             'allow_promotion_codes' => true,
             'success_url'           => $successUrl,
@@ -87,7 +106,7 @@ class SubscriptionController extends Controller
                     && $session->client_reference_id === (string) $tenant->id
                     && $session->status === 'complete') {
                     if ($tenant->isTrial()) {
-                        $this->activate($tenant, $session->customer, $session->subscription);
+                        $this->activate($tenant, $session);
                     }
 
                     // Il browser non lo ripete per la stessa sessione e Meta deduplica sull'eventID.
@@ -193,7 +212,7 @@ class SubscriptionController extends Controller
 
                 $tenant = Tenant::find((int) ($object->metadata->tenant_id ?? 0));
                 if ($tenant && $object->mode === 'subscription') {
-                    $this->activate($tenant, $object->customer, $object->subscription);
+                    $this->activate($tenant, $object);
                 }
                 break;
 
@@ -215,15 +234,47 @@ class SubscriptionController extends Controller
         return response('ok');
     }
 
-    private function activate(Tenant $tenant, ?string $customerId, ?string $subscriptionId): void
+    private function activate(Tenant $tenant, object $session): void
     {
         $tenant->update([
             'plan'                   => 'pro',
-            'stripe_customer_id'     => $customerId ?? $tenant->stripe_customer_id,
-            'stripe_subscription_id' => $subscriptionId ?? $tenant->stripe_subscription_id,
+            'stripe_customer_id'     => $session->customer ?? $tenant->stripe_customer_id,
+            'stripe_subscription_id' => $session->subscription ?? $tenant->stripe_subscription_id,
+            'billing_details'        => $this->billingDetails($session) ?? $tenant->billing_details,
         ]);
 
         Log::info('Stripe: abbonamento attivato', ['tenant' => $tenant->id]);
+    }
+
+    /**
+     * Dati per la fattura dal checkout: ragione sociale (o nome), P.IVA, sede, SDI/PEC, codice fiscale.
+     */
+    private function billingDetails(object $session): ?array
+    {
+        $customer = $session->customer_details ?? null;
+        if (! $customer) {
+            return null;
+        }
+
+        $fields = [];
+        foreach ($session->custom_fields ?? [] as $field) {
+            $fields[$field->key] = trim((string) ($field->text->value ?? '')) ?: null;
+        }
+
+        $address = $customer->address ?? null;
+
+        return [
+            'ragione_sociale' => $customer->name ?? null,
+            'email'           => $customer->email ?? null,
+            'partita_iva'     => ($customer->tax_ids ?? [])[0]->value ?? null,
+            'codice_fiscale'  => $fields['codice_fiscale'] ?? null,
+            'sdi_o_pec'       => $fields['sdi'] ?? null,
+            'indirizzo'       => $address ? trim(($address->line1 ?? '') . ' ' . ($address->line2 ?? '')) : null,
+            'cap'             => $address->postal_code ?? null,
+            'citta'           => $address->city ?? null,
+            'provincia'       => $address->state ?? null,
+            'paese'           => $address->country ?? null,
+        ];
     }
 
     private function readyModule(Request $request): ?CompiledModule

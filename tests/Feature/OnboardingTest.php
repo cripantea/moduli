@@ -187,3 +187,29 @@ test('registration is reported once to the Meta pixel', function () {
     $this->get('/benvenuto')
         ->assertInertia(fn ($page) => $page->where('track', []));
 });
+
+test('a completed checkout keeps the invoicing details', function () {
+    $user = trialUser();
+
+    stripeWebhook([
+        'id' => 'evt_4', 'object' => 'event', 'type' => 'checkout.session.completed',
+        'data' => ['object' => [
+            'object' => 'checkout.session', 'mode' => 'subscription',
+            'client_reference_id' => (string) $user->tenant_id,
+            'metadata' => ['app' => 'moduli', 'tenant_id' => (string) $user->tenant_id],
+            'customer' => 'cus_9', 'subscription' => 'sub_9',
+            'customer_details' => [
+                'name' => 'Prova Srl', 'email' => 'amministrazione@prova.it',
+                'address' => ['line1' => 'Via Roma 1', 'postal_code' => '20100', 'city' => 'Milano', 'state' => 'MI', 'country' => 'IT'],
+                'tax_ids' => [['type' => 'eu_vat', 'value' => 'IT12345678901']],
+            ],
+            'custom_fields' => [
+                ['key' => 'sdi', 'type' => 'text', 'text' => ['value' => 'M5UXCR1']],
+                ['key' => 'codice_fiscale', 'type' => 'text', 'text' => ['value' => null]],
+            ],
+        ]],
+    ])->assertOk();
+
+    expect($user->tenant->fresh()->billing_details)
+        ->toMatchArray(['ragione_sociale' => 'Prova Srl', 'partita_iva' => 'IT12345678901', 'sdi_o_pec' => 'M5UXCR1', 'citta' => 'Milano', 'codice_fiscale' => null]);
+});

@@ -7,13 +7,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Tenant extends Model
 {
-    protected $fillable = ['name', 'plan', 'is_active', 'settings', 'stripe_customer_id', 'stripe_subscription_id'];
+    protected $fillable = ['name', 'plan', 'is_active', 'settings', 'stripe_customer_id', 'stripe_subscription_id', 'billing_details'];
 
     protected function casts(): array
     {
         return [
             'is_active' => 'boolean',
             'settings'  => 'array',
+            'billing_details' => 'array',
         ];
     }
 

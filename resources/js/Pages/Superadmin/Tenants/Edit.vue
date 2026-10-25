@@ -5,6 +5,21 @@ import type { Tenant, User } from '@/types'
 
 interface TenantWithUsers extends Tenant {
   users?: User[]
+  billing_details?: Record<string, string | null> | null
+}
+
+// Dati per la fattura elettronica, raccolti da Stripe al pagamento.
+const billingLabels: Record<string, string> = {
+  ragione_sociale: 'Ragione sociale / nome',
+  partita_iva: 'Partita IVA',
+  codice_fiscale: 'Codice fiscale',
+  sdi_o_pec: 'Codice destinatario / PEC',
+  indirizzo: 'Indirizzo',
+  cap: 'CAP',
+  citta: 'Città',
+  provincia: 'Provincia',
+  paese: 'Paese',
+  email: 'Email',
 }
 
 const props = defineProps<{
@@ -105,6 +120,19 @@ function planLabel(plan: string) {
           </div>
 
         </form>
+      </div>
+
+      <!-- Billing details -->
+      <div v-if="tenant.billing_details" class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div class="px-5 py-3 border-b border-slate-100">
+          <h2 class="text-sm font-semibold text-slate-700">Dati di fatturazione</h2>
+        </div>
+        <dl class="divide-y divide-slate-50">
+          <div v-for="(label, key) in billingLabels" :key="key" class="px-5 py-2.5 flex gap-4 text-sm">
+            <dt class="w-48 shrink-0 text-slate-500">{{ label }}</dt>
+            <dd class="text-slate-800 select-all">{{ tenant.billing_details[key] || '—' }}</dd>
+          </div>
+        </dl>
       </div>
 
       <!-- Users list (read-only overview) -->
