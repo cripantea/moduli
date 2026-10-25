@@ -20,7 +20,7 @@ test('new users can register', function () {
     // Subito dopo la registrazione si propone l'attivazione con il tecnico.
     $response->assertRedirect(route('abbonamento', ['benvenuto' => 1], absolute: false));
     $this->get($response->headers->get('Location'))
-        ->assertInertia(fn ($page) => $page->component('Abbonamento')->where('benvenuto', true));
+        ->assertInertia(fn ($page) => $page->component('Offerta')->where('nome', 'Test'));
 });
 
 test('registration creates a dedicated tenant with the user as admin', function () {

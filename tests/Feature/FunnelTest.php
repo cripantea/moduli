@@ -83,5 +83,5 @@ test('the qualifying answers are saved on the company and the payment page offer
     expect($user->tenant->settings)->toBe(['settore' => 'Agenzia immobiliare', 'volume' => 'Da 10 a 50']);
 
     $this->get('/abbonamento?benvenuto=1')
-        ->assertInertia(fn ($page) => $page->where('benvenuto', true)->where('giorniGratis', 7));
+        ->assertInertia(fn ($page) => $page->component('Offerta')->where('volume', 'Da 10 a 50')->where('giorniGratis', 7));
 });

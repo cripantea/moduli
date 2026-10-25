@@ -36,9 +36,22 @@ class SubscriptionController extends Controller
 
         Funnel::hit('abbonamento', $request);
 
+        $tenant = $request->user()->tenant;
+        $giorniGratis = $tenant->stripe_customer_id ? 0 : (int) config('moduli.free_trial_days');
+
+        // Subito dopo la registrazione: pagina dell'offerta, senza il menu dell'app.
+        if ($request->boolean('benvenuto')) {
+            return Inertia::render('Offerta', [
+                'nome'         => strtok(trim($request->user()->name), ' ') ?: $request->user()->name,
+                'settore'      => $tenant->settings['settore'] ?? null,
+                'volume'       => $tenant->settings['volume'] ?? null,
+                'giorniGratis' => $giorniGratis,
+            ]);
+        }
+
         return Inertia::render('Abbonamento', [
             'benvenuto' => $request->boolean('benvenuto'),
-            'giorniGratis' => $request->user()->tenant->stripe_customer_id ? 0 : (int) config('moduli.free_trial_days'),
+            'giorniGratis' => $giorniGratis,
             'pronto' => $this->readyModule($request),
             'prezzo' => LaunchOffer::price(),
         ]);
@@ -58,7 +71,7 @@ class SubscriptionController extends Controller
 
         Funnel::hit('checkout', $request);
 
-        $back = array_filter(['pronto' => $request->integer('pronto') ?: null]);
+        $back = array_filter(['pronto' => $request->integer('pronto') ?: null, 'benvenuto' => $request->boolean('benvenuto') ?: null]);
         $successUrl = route('abbonamento.attivo', $back);
         $successUrl .= (str_contains($successUrl, '?') ? '&' : '?') . 'session_id={CHECKOUT_SESSION_ID}';
 
