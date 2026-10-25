@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\Funnel;
 use App\Services\FusionCrm;
+use App\Services\MetaConversions;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,8 +24,10 @@ class RegisteredUserController extends Controller
     /**
      * Display the registration view.
      */
-    public function create(): Response
+    public function create(Request $request): Response
     {
+        Funnel::hit('registrazione', $request);
+
         return Inertia::render('Auth/Register');
     }
 
@@ -35,19 +39,21 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'company' => 'required|string|max:255|unique:'.Tenant::class.',name',
+            // L'azienda non si chiede più in registrazione: la ragione sociale arriva col pagamento.
+            'company' => 'nullable|string|max:255',
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'password' => ['required', Rules\Password::defaults()],
             'phone' => ['required', 'string', 'max:30', 'regex:/^[0-9 +().\/-]{6,30}$/'],
         ]);
 
         // Ogni registrazione crea una propria organizzazione, di cui l'utente è admin.
         $user = DB::transaction(function () use ($request) {
             $tenant = Tenant::create([
-                'name' => $request->company,
+                'name' => trim((string) $request->company) ?: trim($request->name),
                 'plan' => 'trial',
                 'is_active' => true,
+                'source' => Funnel::source($request),
             ]);
 
             return User::create([
@@ -65,7 +71,10 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        $request->session()->put('track', [['event' => 'CompleteRegistration']]);
+        // Stesso eventID per pixel e Conversions API: Meta conta la registrazione una volta sola.
+        $request->session()->put('track', [['event' => 'CompleteRegistration', 'eventID' => "reg-{$user->id}"]]);
+        Funnel::hit('registrato', $request);
+        MetaConversions::send($request, 'CompleteRegistration', "reg-{$user->id}", $user);
         FusionCrm::registered($user);
 
         return redirect(route('dashboard', absolute: false));

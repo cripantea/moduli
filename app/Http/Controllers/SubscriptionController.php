@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\CompiledModule;
 use App\Models\Tenant;
+use App\Services\Funnel;
 use App\Services\FusionCrm;
+use App\Services\MetaConversions;
 use App\Services\LaunchOffer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -32,6 +34,8 @@ class SubscriptionController extends Controller
             return redirect()->route('compiled.index');
         }
 
+        Funnel::hit('abbonamento', $request);
+
         return Inertia::render('Abbonamento', [
             'pronto' => $this->readyModule($request),
             'prezzo' => LaunchOffer::price(),
@@ -49,6 +53,8 @@ class SubscriptionController extends Controller
         if (! config('services.stripe.secret') || ! LaunchOffer::stripePrice()) {
             return back()->with('error', 'Pagamento non ancora disponibile: riprova tra poco.');
         }
+
+        Funnel::hit('checkout', $request);
 
         $back = array_filter(['pronto' => $request->integer('pronto') ?: null]);
         $successUrl = route('abbonamento.attivo', $back);
@@ -112,11 +118,13 @@ class SubscriptionController extends Controller
                     }
 
                     // Il browser non lo ripete per la stessa sessione e Meta deduplica sull'eventID.
+                    $value = ($session->amount_total ?? 2900) / 100;
                     $track[] = [
                         'event'   => 'Purchase',
-                        'params'  => ['value' => ($session->amount_total ?? 2900) / 100, 'currency' => 'EUR'],
+                        'params'  => ['value' => $value, 'currency' => 'EUR'],
                         'eventID' => $session->id,
                     ];
+                    MetaConversions::send($request, 'Purchase', $session->id, $request->user(), ['value' => $value, 'currency' => 'EUR']);
                 }
             } catch (\Throwable $e) {
                 Log::warning('Stripe: verifica sessione al ritorno fallita', ['error' => $e->getMessage()]);
@@ -245,6 +253,13 @@ class SubscriptionController extends Controller
             'billing_details'        => $this->billingDetails($session) ?? $tenant->billing_details,
         ]);
 
+        // Una ragione sociale vera dal checkout prende il posto del nome della persona usato in registrazione.
+        $company = $tenant->billing_details['ragione_sociale'] ?? null;
+        if ($company && $tenant->name === $tenant->users()->orderBy('id')->value('name')) {
+            $tenant->update(['name' => $company]);
+        }
+
+        Funnel::hit('pagato', source: $tenant->source ?? 'altro');
         Log::info('Stripe: abbonamento attivato', ['tenant' => $tenant->id]);
         FusionCrm::paid($tenant);
     }

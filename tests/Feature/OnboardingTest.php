@@ -177,12 +177,13 @@ test('the subscription portal is not opened for companies without a Stripe custo
 
 test('registration is reported once to the Meta pixel', function () {
     $this->post('/register', [
-        'company' => 'Nuova Srl', 'name' => 'Mario', 'email' => 'mario@example.com',
-        'password' => 'password', 'password_confirmation' => 'password', 'phone' => '333 000 0000',
+        'name' => 'Mario', 'email' => 'mario@example.com',
+        'password' => 'password', 'phone' => '333 000 0000',
     ]);
 
     $this->get('/benvenuto')
-        ->assertInertia(fn ($page) => $page->where('track.0.event', 'CompleteRegistration'));
+        ->assertInertia(fn ($page) => $page->where('track.0.event', 'CompleteRegistration')
+            ->where('track.0.eventID', 'reg-' . User::where('email', 'mario@example.com')->value('id')));
 
     $this->get('/benvenuto')
         ->assertInertia(fn ($page) => $page->where('track', []));

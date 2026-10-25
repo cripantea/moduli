@@ -94,7 +94,7 @@ const faqs = [
     </section>
 
     <!-- Prezzo -->
-    <section class="bg-gray-50">
+    <section data-funnel="prezzo" class="bg-gray-50">
       <div class="max-w-xl mx-auto px-4 sm:px-6 py-12 lg:py-20">
         <div class="rounded-2xl bg-white border border-gray-200 p-8">
           <p class="text-sm font-medium text-gray-500">Fusion Moduli</p>

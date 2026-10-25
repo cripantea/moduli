@@ -32,6 +32,7 @@
 
         <!-- Pixel Meta: caricato da resources/js/tracking.ts solo dopo il consenso ai cookie -->
         <meta name="meta-pixel" content="{{ config('services.meta.pixel_id') }}">
+        <meta name="clarity" content="{{ config('services.clarity.project_id') }}">
 
         <!-- Scripts -->
         @routes

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { consent, pixelId, setConsent, pageView } from '@/tracking'
+import { consent, trackingEnabled, setConsent, pageView } from '@/tracking'
 import { ref } from 'vue'
 
-const visible = ref(!!pixelId && consent() === null)
+const visible = ref(trackingEnabled && consent() === null)
 
 function choose(value: 'si' | 'no') {
   setConsent(value)
@@ -18,7 +18,7 @@ function choose(value: 'si' | 'no') {
   >
     <div class="bg-white border border-gray-200 rounded-2xl shadow-xl p-5">
       <p class="text-sm text-gray-700">
-        Usiamo cookie di Meta per capire quali nostre pubblicità funzionano. Nessun altro uso.
+        Usiamo cookie di Meta e Microsoft Clarity per capire quali pubblicità funzionano e come migliorare il sito. Nessun altro uso.
         <a href="https://fusionsoft.it/privacy" target="_blank" rel="noopener" class="text-indigo-600 underline">Privacy</a>
       </p>
       <div class="mt-4 grid grid-cols-2 gap-2">

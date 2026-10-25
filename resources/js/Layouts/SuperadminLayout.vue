@@ -56,6 +56,13 @@
           Chat AI
         </SidebarLink>
 
+        <SidebarLink :href="route('superadmin.funnel')" :active="route().current('superadmin.funnel')">
+          <template #icon>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h18l-7 8v6l-4 2v-8L3 4z"/></svg>
+          </template>
+          Funnel
+        </SidebarLink>
+
       </nav>
 
       <!-- User info + logout -->

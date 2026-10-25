@@ -9,18 +9,35 @@ use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\SupportTicketController;
 use App\Http\Controllers\Superadmin\SupportTicketController as SuperadminTicketController;
 use App\Http\Controllers\Superadmin\AssistantChatController as SuperadminChatController;
+use App\Http\Controllers\Superadmin\FunnelController as SuperadminFunnelController;
 use App\Http\Controllers\Superadmin\SuperadminController;
 use App\Http\Controllers\Superadmin\TenantController;
+use App\Services\Funnel;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 // Public landing page
-Route::get('/', function () {
+Route::get('/', function (Request $request) {
+    Funnel::arrive($request);
+
     return Inertia::render('Landing');
 })->name('landing');
 
 // Landing dedicata alle campagne Meta.
-Route::get('/prova', fn () => Inertia::render('Prova'))->name('prova');
+Route::get('/prova', function (Request $request) {
+    Funnel::arrive($request);
+
+    return Inertia::render('Prova');
+})->name('prova');
+
+// Passi del funnel che succedono nel browser (arriva al prezzo, clicca "Inizia ora"): contatori anonimi.
+Route::post('/funnel', function (Request $request) {
+    $step = $request->validate(['step' => ['required', 'in:prezzo,clic']])['step'];
+    Funnel::hit($step, $request);
+
+    return response()->noContent();
+})->middleware('throttle:30,1')->name('funnel');
 
 Route::get('/termini', fn () => Inertia::render('Termini', [
     'azienda' => config('moduli.company'),
@@ -101,6 +118,7 @@ Route::prefix('superadmin')->name('superadmin.')->middleware(['auth', 'active', 
     Route::put('/ticket/{ticket}', [SuperadminTicketController::class, 'update'])->name('tickets.update');
     Route::get('/chat', [SuperadminChatController::class, 'index'])->name('chats.index');
     Route::get('/chat/{chat}', [SuperadminChatController::class, 'show'])->name('chats.show');
+    Route::get('/funnel', [SuperadminFunnelController::class, 'index'])->name('funnel');
 });
 
 require __DIR__ . '/auth.php';

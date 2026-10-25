@@ -52,7 +52,14 @@ return [
 
     // Pixel Meta: si carica solo dopo il consenso ai cookie (banner nel sito).
     'meta' => [
-        'pixel_id' => env('META_PIXEL_ID'),
+        'pixel_id'   => env('META_PIXEL_ID'),
+        // Token della Conversions API (Gestione eventi → pixel → Impostazioni).
+        'capi_token' => env('META_CAPI_TOKEN'),
+    ],
+
+    // Microsoft Clarity: mappe di calore e registrazioni delle visite, solo dopo il consenso ai cookie.
+    'clarity' => [
+        'project_id' => env('CLARITY_PROJECT_ID'),
     ],
 
     // Pagina di prenotazione della call di onboarding (calendario CRM Fusion).

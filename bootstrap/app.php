@@ -24,6 +24,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->validateCsrfTokens(except: ['stripe/webhook']);
 
+        // Cookie scritti dal browser (consenso, pixel Meta): il server li legge così come sono.
+        $middleware->encryptCookies(except: ['cookie-consenso', '_fbp', '_fbc']);
+
         // Alias middleware registrabili nei route group.
         $middleware->alias([
             'superadmin' => EnsureSuperAdmin::class,

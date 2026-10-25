@@ -2,19 +2,57 @@
 import LaunchBanner from '@/Components/LaunchBanner.vue'
 import { Head, Link, useForm } from '@inertiajs/vue3'
 import InputError from '@/Components/InputError.vue'
+import { computed, nextTick, ref } from 'vue'
 
+// Registrazione in 3 passi brevi: email, nome e cellulare, password. L'azienda non si chiede:
+// la ragione sociale arriva al pagamento.
 const form = useForm({
-  company: '',
   name: '',
   email: '',
   phone: '',
   password: '',
-  password_confirmation: '',
 })
 
+const step = ref(1)
+const showPassword = ref(false)
+const formEl = ref<HTMLFormElement | null>(null)
+const titles = ['La tua email', 'Come ti chiami?', 'Scegli una password']
+const subtitles = ['Ci serve per farti accedere e mandarti le fatture.', 'Il cellulare serve per fissare i 30 minuti col tecnico.', 'Ultimo passo: almeno 8 caratteri.']
+const stepFields: Record<number, string[]> = { 1: ['email'], 2: ['name', 'phone'], 3: ['password'] }
+const title = computed(() => titles[step.value - 1])
+const subtitle = computed(() => subtitles[step.value - 1])
+
+function focusFirst() {
+  nextTick(() => formEl.value?.querySelector<HTMLInputElement>('input:not([type=hidden])')?.focus())
+}
+
+function stepValid(): boolean {
+  const inputs = Array.from(formEl.value?.querySelectorAll<HTMLInputElement>('input') ?? [])
+  const invalid = inputs.find((input) => !input.checkValidity())
+  invalid?.reportValidity()
+  return !invalid
+}
+
+function back() {
+  step.value = Math.max(1, step.value - 1)
+  focusFirst()
+}
+
 const submit = () => {
+  if (!stepValid()) return
+  if (step.value < 3) {
+    step.value++
+    focusFirst()
+    return
+  }
   form.post(route('register'), {
-    onFinish: () => form.reset('password', 'password_confirmation'),
+    onError: (errors) => {
+      // Torna al primo passo che ha un errore.
+      const first = [1, 2, 3].find((n) => stepFields[n].some((field) => field in errors))
+      if (first) step.value = first
+      focusFirst()
+    },
+    onFinish: () => form.reset('password'),
   })
 }
 </script>
@@ -53,134 +91,102 @@ const submit = () => {
         </div>
 
         <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
-          <form @submit.prevent="submit" class="space-y-5">
-
-            <div>
-              <label for="company" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
-                Azienda
-              </label>
-              <input
-                id="company"
-                v-model="form.company"
-                type="text"
-                autocomplete="organization"
-                required
-                autofocus
-                placeholder="Nome della tua azienda"
-                class="w-full border rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 transition"
-                :class="form.errors.company
-                  ? 'border-red-400 focus:ring-red-300'
-                  : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'"
-              />
-              <InputError :message="form.errors.company" class="mt-1.5" />
+          <div class="mb-6">
+            <div class="flex items-center justify-between text-xs text-gray-500">
+              <span>Passo {{ step }} di 3</span>
+              <button v-if="step > 1" type="button" class="text-indigo-600 hover:underline" @click="back">Indietro</button>
             </div>
-
-            <div>
-              <label for="name" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
-                Nome
-              </label>
-              <input
-                id="name"
-                v-model="form.name"
-                type="text"
-                autocomplete="name"
-                required
-                placeholder="Il tuo nome"
-                class="w-full border rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 transition"
-                :class="form.errors.name
-                  ? 'border-red-400 focus:ring-red-300'
-                  : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'"
-              />
-              <InputError :message="form.errors.name" class="mt-1.5" />
+            <div class="mt-2 h-1.5 rounded-full bg-gray-100">
+              <div class="h-1.5 rounded-full bg-indigo-600 transition-all" :style="{ width: `${(step / 3) * 100}%` }" />
             </div>
+            <h2 class="mt-5 text-lg font-bold text-gray-900">{{ title }}</h2>
+            <p class="mt-1 text-sm text-gray-500">{{ subtitle }}</p>
+          </div>
 
-            <div>
-              <label for="email" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
-                Email aziendale
-              </label>
+          <form ref="formEl" @submit.prevent="submit" class="space-y-5" novalidate>
+
+            <div v-if="step === 1">
+              <label for="email" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Email</label>
               <input
                 id="email"
                 v-model="form.email"
                 type="email"
                 autocomplete="username"
+                inputmode="email"
                 required
+                autofocus
                 placeholder="nome@azienda.it"
-                class="w-full border rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 transition"
-                :class="form.errors.email
-                  ? 'border-red-400 focus:ring-red-300'
-                  : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'"
+                class="w-full border rounded-lg px-3 py-3 text-base outline-none focus:ring-2 transition"
+                :class="form.errors.email ? 'border-red-400 focus:ring-red-300' : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'"
               />
               <InputError :message="form.errors.email" class="mt-1.5" />
             </div>
 
-            <div>
-              <label for="phone" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
-                Cellulare
-              </label>
-              <input
-                id="phone"
-                v-model="form.phone"
-                type="tel"
-                autocomplete="tel"
-                required
-                placeholder="333 123 4567"
-                aria-describedby="phone-help"
-                class="w-full border rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 transition"
-                :class="form.errors.phone
-                  ? 'border-red-400 focus:ring-red-300'
-                  : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'"
-              />
-              <p id="phone-help" class="mt-1 text-xs text-gray-400">Per fissare i 30 minuti col tecnico. Lo usiamo solo per aiutarti con Moduli.</p>
-              <InputError :message="form.errors.phone" class="mt-1.5" />
-            </div>
+            <template v-if="step === 2">
+              <div>
+                <label for="name" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Nome e cognome</label>
+                <input
+                  id="name"
+                  v-model="form.name"
+                  type="text"
+                  autocomplete="name"
+                  required
+                  placeholder="Mario Rossi"
+                  class="w-full border rounded-lg px-3 py-3 text-base outline-none focus:ring-2 transition"
+                  :class="form.errors.name ? 'border-red-400 focus:ring-red-300' : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'"
+                />
+                <InputError :message="form.errors.name" class="mt-1.5" />
+              </div>
+              <div>
+                <label for="phone" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Cellulare</label>
+                <input
+                  id="phone"
+                  v-model="form.phone"
+                  type="tel"
+                  autocomplete="tel"
+                  inputmode="tel"
+                  required
+                  minlength="6"
+                  maxlength="30"
+                  placeholder="333 123 4567"
+                  class="w-full border rounded-lg px-3 py-3 text-base outline-none focus:ring-2 transition"
+                  :class="form.errors.phone ? 'border-red-400 focus:ring-red-300' : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'"
+                />
+                <InputError :message="form.errors.phone" class="mt-1.5" />
+              </div>
+            </template>
 
-            <div>
-              <label for="password" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
-                Password
-              </label>
-              <input
-                id="password"
-                v-model="form.password"
-                type="password"
-                autocomplete="new-password"
-                required
-                placeholder="Minimo 8 caratteri"
-                class="w-full border rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 transition"
-                :class="form.errors.password
-                  ? 'border-red-400 focus:ring-red-300'
-                  : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'"
-              />
+            <div v-if="step === 3">
+              <label for="password" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Password</label>
+              <div class="relative">
+                <input
+                  id="password"
+                  v-model="form.password"
+                  :type="showPassword ? 'text' : 'password'"
+                  autocomplete="new-password"
+                  required
+                  minlength="8"
+                  placeholder="Minimo 8 caratteri"
+                  class="w-full border rounded-lg pl-3 pr-20 py-3 text-base outline-none focus:ring-2 transition"
+                  :class="form.errors.password ? 'border-red-400 focus:ring-red-300' : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'"
+                />
+                <button type="button" class="absolute inset-y-0 right-0 px-3 text-xs font-semibold text-gray-500 hover:text-gray-800" @click="showPassword = !showPassword">
+                  {{ showPassword ? 'Nascondi' : 'Mostra' }}
+                </button>
+              </div>
               <InputError :message="form.errors.password" class="mt-1.5" />
-            </div>
-
-            <div>
-              <label for="password_confirmation" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
-                Conferma password
-              </label>
-              <input
-                id="password_confirmation"
-                v-model="form.password_confirmation"
-                type="password"
-                autocomplete="new-password"
-                required
-                class="w-full border rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 transition"
-                :class="form.errors.password_confirmation
-                  ? 'border-red-400 focus:ring-red-300'
-                  : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'"
-              />
-              <InputError :message="form.errors.password_confirmation" class="mt-1.5" />
             </div>
 
             <button
               type="submit"
               :disabled="form.processing"
-              class="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed rounded-lg text-white text-sm font-semibold transition"
+              class="w-full flex items-center justify-center gap-2 py-3 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed rounded-lg text-white text-base font-semibold transition"
             >
               <svg v-if="form.processing" class="animate-spin h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
               </svg>
-              {{ form.processing ? 'Creazione account…' : 'Crea il tuo account' }}
+              {{ form.processing ? 'Creazione account…' : step < 3 ? 'Continua' : 'Crea il tuo account' }}
             </button>
 
           </form>

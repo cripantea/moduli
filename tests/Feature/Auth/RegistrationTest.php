@@ -10,11 +10,10 @@ test('registration screen can be rendered', function () {
 
 test('new users can register', function () {
     $response = $this->post('/register', [
-        'company' => 'Test Company',
         'name' => 'Test User',
         'email' => 'test@example.com',
         'password' => 'password',
-        'password_confirmation' => 'password', 'phone' => '333 000 0000',
+        'phone' => '333 000 0000',
     ]);
 
     $this->assertAuthenticated();
@@ -23,27 +22,25 @@ test('new users can register', function () {
 
 test('registration creates a dedicated tenant with the user as admin', function () {
     $this->post('/register', [
-        'company' => 'Acme Srl',
         'name' => 'Test User',
         'email' => 'test@example.com',
         'password' => 'password',
-        'password_confirmation' => 'password', 'phone' => '333 000 0000',
+        'phone' => '333 000 0000',
     ]);
 
     $user = User::where('email', 'test@example.com')->first();
 
     expect($user->tenant)->not->toBeNull()
-        ->and($user->tenant->name)->toBe('Acme Srl')
+        ->and($user->tenant->name)->toBe('Test User')
         ->and($user->role)->toBe('admin');
 });
 
 test('newly registered users start from onboarding without verifying the email first', function () {
     $this->post('/register', [
-        'company' => 'Acme Srl',
         'name' => 'Test User',
         'email' => 'test@example.com',
         'password' => 'password',
-        'password_confirmation' => 'password', 'phone' => '333 000 0000',
+        'phone' => '333 000 0000',
     ]);
 
     $this->get('/dashboard')->assertRedirect(route('onboarding', absolute: false));

@@ -507,7 +507,7 @@ const faqs = [
   <!-- ════════════════════════════════════════════════════════════
        PRICING
   ════════════════════════════════════════════════════════════ -->
-  <section id="prezzi" class="py-20 lg:py-28 bg-gray-50">
+  <section id="prezzi" data-funnel="prezzo" class="py-20 lg:py-28 bg-gray-50">
     <div class="max-w-lg mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-10">
         <p class="text-indigo-600 text-sm font-semibold uppercase tracking-widest mb-3">Prezzi</p>
