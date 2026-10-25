@@ -3,6 +3,7 @@ import LaunchBanner from '@/Components/LaunchBanner.vue'
 import { Head, Link, useForm } from '@inertiajs/vue3'
 import InputError from '@/Components/InputError.vue'
 import { computed, nextTick, ref } from 'vue'
+import { setConsent } from '@/tracking'
 
 // Registrazione in 4 passi brevi: due domande a scelta rapida, email, nome e cellulare, password.
 // L'azienda non si chiede: la ragione sociale arriva al pagamento.
@@ -15,6 +16,7 @@ const form = useForm({
   email: '',
   phone: '',
   password: '',
+  misurazione: false,
 })
 
 const step = ref(1)
@@ -60,6 +62,8 @@ const submit = () => {
     focusFirst()
     return
   }
+  // Consenso esplicito e facoltativo: vale come "Accetta" del banner (pixel, Clarity, Conversions API).
+  if (form.misurazione) setConsent('si')
   form.post(route('register'), {
     onError: (errors) => {
       // Torna al primo passo che ha un errore.
@@ -215,6 +219,10 @@ const submit = () => {
                 </button>
               </div>
               <InputError :message="form.errors.password" class="mt-1.5" />
+              <label class="mt-4 flex items-start gap-2.5 text-sm text-gray-600">
+                <input v-model="form.misurazione" type="checkbox" class="mt-0.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                <span>Accetto i cookie di misurazione di Meta e Microsoft Clarity, per migliorare annunci e sito. <span class="text-gray-400">(Facoltativo)</span></span>
+              </label>
             </div>
 
             <button

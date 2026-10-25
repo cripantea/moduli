@@ -41,6 +41,8 @@ export function consent(): 'si' | 'no' | null {
 export function setConsent(value: 'si' | 'no') {
   storage('set', CONSENT_KEY, value)
   consentCookie(value)
+  // Il banner si chiude anche quando il consenso arriva da altrove (casella in registrazione).
+  window.dispatchEvent(new CustomEvent('consenso'))
   if (value === 'si') {
     loadPixel()
     loadClarity()
