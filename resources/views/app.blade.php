@@ -6,20 +6,20 @@
         <meta name="robots" content="index, follow">
 
         <!-- Default SEO — overridden per-page via <Head> in Vue -->
-        <title inertia>Fusion Moduli — Compila e genera documenti più velocemente</title>
-        <meta name="description" content="Digitalizza i moduli della tua azienda. Compila i dati attraverso procedure guidate, visualizza il documento in tempo reale e genera il file finale.">
+        <title inertia>Fusion Moduli: compila i tuoi moduli PDF in 30 secondi, senza Adobe</title>
+        <meta name="description" content="Carica il modulo PDF che compili ogni giorno: l'AI trova i campi, tu lo compili in 30 secondi e ogni documento resta in archivio. 29 €/mese, rimborso entro 30 giorni.">
 
         <!-- Open Graph -->
         <meta property="og:type" content="website">
         <meta property="og:locale" content="it_IT">
         <meta property="og:site_name" content="Fusion Moduli">
-        <meta property="og:title" content="Fusion Moduli — Compila e genera documenti più velocemente">
-        <meta property="og:description" content="Digitalizza i moduli della tua azienda. Compila i dati attraverso procedure guidate, visualizza il documento in tempo reale e genera il file finale.">
+        <meta property="og:title" content="Fusion Moduli: compila i tuoi moduli PDF in 30 secondi, senza Adobe">
+        <meta property="og:description" content="Carica il modulo PDF che compili ogni giorno: l'AI trova i campi, tu lo compili in 30 secondi e ogni documento resta in archivio. 29 €/mese, rimborso entro 30 giorni.">
 
         <!-- Twitter / X -->
         <meta name="twitter:card" content="summary_large_image">
-        <meta name="twitter:title" content="Fusion Moduli — Compila e genera documenti più velocemente">
-        <meta name="twitter:description" content="Digitalizza i moduli della tua azienda. Compila i dati attraverso procedure guidate, visualizza il documento in tempo reale e genera il file finale.">
+        <meta name="twitter:title" content="Fusion Moduli: compila i tuoi moduli PDF in 30 secondi, senza Adobe">
+        <meta name="twitter:description" content="Carica il modulo PDF che compili ogni giorno: l'AI trova i campi, tu lo compili in 30 secondi e ogni documento resta in archivio. 29 €/mese, rimborso entro 30 giorni.">
 
         <!-- Favicon -->
         <link rel="icon" type="image/svg+xml" href="/favicon.svg">
