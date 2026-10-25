@@ -39,7 +39,7 @@ class RegisteredUserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'phone' => ['nullable', 'string', 'max:30', 'regex:/^[0-9 +().\/-]{6,30}$/'],
+            'phone' => ['required', 'string', 'max:30', 'regex:/^[0-9 +().\/-]{6,30}$/'],
         ]);
 
         // Ogni registrazione crea una propria organizzazione, di cui l'utente è admin.
@@ -57,7 +57,7 @@ class RegisteredUserController extends Controller
                 'tenant_id' => $tenant->id,
                 'role' => 'admin',
                 'is_active' => true,
-                'phone' => $request->filled('phone') ? trim($request->phone) : null,
+                'phone' => trim($request->phone),
             ]);
         });
 

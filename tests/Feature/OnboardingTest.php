@@ -178,7 +178,7 @@ test('the subscription portal is not opened for companies without a Stripe custo
 test('registration is reported once to the Meta pixel', function () {
     $this->post('/register', [
         'company' => 'Nuova Srl', 'name' => 'Mario', 'email' => 'mario@example.com',
-        'password' => 'password', 'password_confirmation' => 'password',
+        'password' => 'password', 'password_confirmation' => 'password', 'phone' => '333 000 0000',
     ]);
 
     $this->get('/benvenuto')
@@ -235,14 +235,14 @@ test('registrations from the same address are throttled', function () {
     foreach (range(1, config('moduli.limits.registrations_per_ip_per_hour')) as $i) {
         $this->post('/register', [
             'company' => "Azienda {$i}", 'name' => 'Bot', 'email' => "bot{$i}@example.com",
-            'password' => 'password', 'password_confirmation' => 'password',
+            'password' => 'password', 'password_confirmation' => 'password', 'phone' => '333 000 0000',
         ]);
         auth()->logout();
     }
 
     $this->post('/register', [
         'company' => 'Azienda extra', 'name' => 'Bot', 'email' => 'extra@example.com',
-        'password' => 'password', 'password_confirmation' => 'password',
+        'password' => 'password', 'password_confirmation' => 'password', 'phone' => '333 000 0000',
     ])->assertSessionHasErrors('email');
 
     expect(\App\Models\User::where('email', 'extra@example.com')->exists())->toBeFalse();
@@ -334,4 +334,11 @@ test('registrations and payments are sent to Fusion CRM for the follow-up emails
     ])->assertOk();
 
     \Illuminate\Support\Facades\Http::assertSent(fn ($r) => $r['email'] === 'giulia@example.com' && in_array('moduli-cliente', $r['tags']));
+});
+
+test('the mobile number is required to register', function () {
+    $this->post('/register', [
+        'company' => 'Senza Tel Srl', 'name' => 'Anna', 'email' => 'anna@example.com',
+        'password' => 'password', 'password_confirmation' => 'password',
+    ])->assertSessionHasErrors('phone');
 });

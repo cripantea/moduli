@@ -115,21 +115,22 @@ const submit = () => {
 
             <div>
               <label for="phone" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
-                Cellulare <span class="normal-case font-normal text-gray-400">(facoltativo)</span>
+                Cellulare
               </label>
               <input
                 id="phone"
                 v-model="form.phone"
                 type="tel"
                 autocomplete="tel"
-                placeholder="Per fissare la chiamata col tecnico"
+                required
+                placeholder="333 123 4567"
                 aria-describedby="phone-help"
                 class="w-full border rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 transition"
                 :class="form.errors.phone
                   ? 'border-red-400 focus:ring-red-300'
                   : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'"
               />
-              <p id="phone-help" class="mt-1 text-xs text-gray-400">Lo usiamo solo per aiutarti a impostare Moduli.</p>
+              <p id="phone-help" class="mt-1 text-xs text-gray-400">Per fissare i 30 minuti col tecnico. Lo usiamo solo per aiutarti con Moduli.</p>
               <InputError :message="form.errors.phone" class="mt-1.5" />
             </div>
 

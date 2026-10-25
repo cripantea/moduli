@@ -14,7 +14,7 @@ test('new users can register', function () {
         'name' => 'Test User',
         'email' => 'test@example.com',
         'password' => 'password',
-        'password_confirmation' => 'password',
+        'password_confirmation' => 'password', 'phone' => '333 000 0000',
     ]);
 
     $this->assertAuthenticated();
@@ -27,7 +27,7 @@ test('registration creates a dedicated tenant with the user as admin', function 
         'name' => 'Test User',
         'email' => 'test@example.com',
         'password' => 'password',
-        'password_confirmation' => 'password',
+        'password_confirmation' => 'password', 'phone' => '333 000 0000',
     ]);
 
     $user = User::where('email', 'test@example.com')->first();
@@ -43,7 +43,7 @@ test('newly registered users start from onboarding without verifying the email f
         'name' => 'Test User',
         'email' => 'test@example.com',
         'password' => 'password',
-        'password_confirmation' => 'password',
+        'password_confirmation' => 'password', 'phone' => '333 000 0000',
     ]);
 
     $this->get('/dashboard')->assertRedirect(route('onboarding', absolute: false));
