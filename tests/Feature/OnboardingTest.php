@@ -310,3 +310,28 @@ test('the launch price ends at the deadline and checkout switches to the standar
     $this->actingAs(trialUser())->get('/abbonamento')
         ->assertInertia(fn ($page) => $page->where('prezzo', 49)->where('offerta.attiva', false));
 });
+
+test('registrations and payments are sent to Fusion CRM for the follow-up emails', function () {
+    config(['services.fusion_crm.webhook_url' => 'https://crm.test/api/hooks/x', 'services.fusion_crm.webhook_token' => 'tok']);
+    \Illuminate\Support\Facades\Http::fake(['crm.test/*' => \Illuminate\Support\Facades\Http::response(['contactId' => 'c1'])]);
+
+    $this->post('/register', [
+        'company' => 'Studio Bianchi', 'name' => 'Giulia Bianchi', 'email' => 'giulia@example.com', 'phone' => '333 123 4567',
+        'password' => 'password', 'password_confirmation' => 'password',
+    ]);
+
+    \Illuminate\Support\Facades\Http::assertSent(fn ($r) => $r->hasHeader('X-Fusion-Token', 'tok')
+        && $r['email'] === 'giulia@example.com' && $r['firstName'] === 'Giulia' && $r['phone'] === '333 123 4567'
+        && in_array('moduli-prova', $r['tags']) && $r['customFields']['moduli_azienda'] === 'Studio Bianchi');
+
+    $tenant = \App\Models\User::where('email', 'giulia@example.com')->first()->tenant;
+    stripeWebhook([
+        'id' => 'evt_9', 'object' => 'event', 'type' => 'checkout.session.completed',
+        'data' => ['object' => [
+            'object' => 'checkout.session', 'mode' => 'subscription', 'client_reference_id' => (string) $tenant->id,
+            'metadata' => ['app' => 'moduli', 'tenant_id' => (string) $tenant->id], 'customer' => 'cus_g', 'subscription' => 'sub_g',
+        ]],
+    ])->assertOk();
+
+    \Illuminate\Support\Facades\Http::assertSent(fn ($r) => $r['email'] === 'giulia@example.com' && in_array('moduli-cliente', $r['tags']));
+});

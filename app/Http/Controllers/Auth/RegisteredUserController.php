@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\FusionCrm;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -38,6 +39,7 @@ class RegisteredUserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'phone' => ['nullable', 'string', 'max:30', 'regex:/^[0-9 +().\/-]{6,30}$/'],
         ]);
 
         // Ogni registrazione crea una propria organizzazione, di cui l'utente è admin.
@@ -55,6 +57,7 @@ class RegisteredUserController extends Controller
                 'tenant_id' => $tenant->id,
                 'role' => 'admin',
                 'is_active' => true,
+                'phone' => $request->filled('phone') ? trim($request->phone) : null,
             ]);
         });
 
@@ -63,6 +66,7 @@ class RegisteredUserController extends Controller
         Auth::login($user);
 
         $request->session()->put('track', [['event' => 'CompleteRegistration']]);
+        FusionCrm::registered($user);
 
         return redirect(route('dashboard', absolute: false));
     }

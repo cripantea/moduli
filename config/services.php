@@ -51,6 +51,12 @@ return [
         'base_url' => env('DEEPSEEK_BASE_URL', 'https://api.deepseek.com'),
     ],
 
+    // Fusion CRM: registrazioni e pagamenti di Moduli per la sequenza di email (endpoint webhook del CRM).
+    'fusion_crm' => [
+        'webhook_url'   => env('FUSION_CRM_WEBHOOK_URL'),
+        'webhook_token' => env('FUSION_CRM_WEBHOOK_TOKEN'),
+    ],
+
     // Pixel Meta: si carica solo dopo il consenso ai cookie (banner nel sito).
     'meta' => [
         'pixel_id' => env('META_PIXEL_ID'),

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CompiledModule;
 use App\Models\Tenant;
+use App\Services\FusionCrm;
 use App\Services\LaunchOffer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -245,6 +246,7 @@ class SubscriptionController extends Controller
         ]);
 
         Log::info('Stripe: abbonamento attivato', ['tenant' => $tenant->id]);
+        FusionCrm::paid($tenant);
     }
 
     /**
