@@ -330,11 +330,12 @@ onBeforeUnmount(() => ro?.disconnect())
               <p class="text-sm text-gray-400 italic">Nessun PDF matrice configurato</p>
             </div>
 
-            <!-- PDF image -->
+            <!-- PDF image: stirata su A4 come fa il PDF finale, così i campi cadono nello stesso punto
+                 anche con pagine di altro formato (es. Letter) -->
             <img
               v-if="previewDataUrl"
               :src="previewDataUrl"
-              class="w-full h-full object-contain select-none"
+              class="w-full h-full object-fill select-none"
               draggable="false"
               alt="Anteprima PDF"
             />
