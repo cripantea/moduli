@@ -14,6 +14,14 @@ return [
         'email'   => env('COMPANY_EMAIL'),
     ],
 
+    // Offerta di lancio: fino alla scadenza 29 €/mese, poi 49 €/mese. Chi si abbona prima resta a 29 €
+    // (gli abbonamenti Stripe esistenti tengono il loro prezzo). Ora di Roma.
+    'launch' => [
+        'ends_at'        => env('LAUNCH_ENDS_AT', '2026-10-29 23:59:59'),
+        'price'          => 29,
+        'standard_price' => 49,
+    ],
+
     'limits' => [
         'trial' => [
             'templates'        => 3,    // template salvati

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import LaunchBanner from '@/Components/LaunchBanner.vue'
 import { Head, Link, useForm } from '@inertiajs/vue3'
 import InputError from '@/Components/InputError.vue'
 
@@ -21,6 +22,7 @@ const submit = () => {
   <Head title="Crea account — Fusion Moduli" />
 
   <div class="min-h-screen bg-gray-50 flex flex-col">
+    <LaunchBanner />
 
     <!-- Top nav -->
     <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white">

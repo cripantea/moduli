@@ -61,9 +61,11 @@ const aggiornati = '25 ottobre 2026'
           per scaricare i documenti compilati serve l'abbonamento.
         </p>
         <p>
-          L'abbonamento costa <strong>29 € al mese IVA inclusa</strong>, si paga in anticipo con carta tramite Stripe e si rinnova
-          automaticamente ogni mese finché non lo disdici. Eventuali variazioni di prezzo ti saranno comunicate con almeno 30 giorni
-          di anticipo e varranno dal rinnovo successivo: se non le accetti puoi disdire prima.
+          L'abbonamento costa <strong>49 € al mese IVA inclusa</strong>. Fino al 29 ottobre 2026 alle 23:59 (ora italiana) vale il
+          <strong>prezzo di lancio di 29 € al mese</strong>: chi si abbona entro quella data paga 29 € al mese per tutto il tempo in cui
+          il suo abbonamento resta attivo. Si paga in anticipo con carta tramite Stripe e si rinnova automaticamente ogni mese finché
+          non lo disdici. Eventuali altre variazioni di prezzo ti saranno comunicate con almeno 30 giorni di anticipo e varranno dal
+          rinnovo successivo: se non le accetti puoi disdire prima.
         </p>
         <p>
           Per ricevere la fattura elettronica inserisci al pagamento i tuoi dati di fatturazione (ragione sociale, partita IVA,

@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Head, router, usePage } from '@inertiajs/vue3'
 import { computed, ref } from 'vue'
 import { track } from '@/tracking'
+import LaunchPrice from '@/Components/LaunchPrice.vue'
 
 const props = defineProps<{
   pronto: { id: number; template_name: string; created_at: string } | null
@@ -42,16 +43,13 @@ function checkout() {
 
       <div class="mt-6 bg-white border border-gray-200 rounded-2xl p-6">
         <p class="text-sm font-medium text-gray-500">Moduli</p>
-        <p class="mt-1">
-          <span class="text-4xl font-bold text-gray-900">{{ prezzo }} €</span>
-          <span class="text-sm text-gray-500"> / mese</span>
-        </p>
+        <LaunchPrice class="mt-1" />
 
         <ul class="mt-5 space-y-2 text-sm text-gray-700">
           <li>✓ Moduli e compilazioni illimitati</li>
           <li>✓ L'AI riconosce i campi di ogni nuovo PDF</li>
           <li>✓ Archivio con ricerca e download</li>
-          <li>✓ Videochiamata di onboarding con noi</li>
+          <li>✓ 30 minuti di videochiamata con un tecnico che imposta tutto con te</li>
           <li>✓ Nessun vincolo: disdici quando vuoi, con un clic</li>
         </ul>
 

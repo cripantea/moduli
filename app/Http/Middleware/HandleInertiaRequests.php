@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\LaunchOffer;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -26,6 +27,8 @@ class HandleInertiaRequests extends Middleware
                 // Cliente pagante con abbonamento Stripe: può gestirlo (disdetta, carta, fatture).
                 'billing' => (bool) $request->user()?->tenant?->stripe_customer_id && ! $request->user()->tenant->isTrial(),
             ],
+            // Offerta di lancio (prezzo, scadenza) per conto alla rovescia e prezzi in tutte le pagine.
+            'offerta' => fn () => LaunchOffer::toArray(),
             // Eventi per il pixel Meta (es. registrazione), inviati una sola volta.
             'track' => fn () => $request->session()->pull('track', []),
             'flash' => [

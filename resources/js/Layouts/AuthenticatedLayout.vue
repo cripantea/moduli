@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import SupportTicketButton from '@/Components/SupportTicketButton.vue'
 import AssistantWidget from '@/Components/AssistantWidget.vue'
+import LaunchBanner from '@/Components/LaunchBanner.vue'
 import { computed, ref } from 'vue'
 import { Link, usePage, router } from '@inertiajs/vue3'
 import type { PageProps } from '@/types'
@@ -19,6 +20,7 @@ function isActive(href: string): boolean {
   return currentPath.value.startsWith(path)
 }
 
+const trial = computed(() => (page.props.auth as { trial?: boolean }).trial)
 const billing = computed(() => (page.props.auth as { billing?: boolean }).billing)
 
 function manageSubscription() {
@@ -164,6 +166,7 @@ const initials = computed(() =>
 
     <!-- ── Main ──────────────────────────────────────────── -->
     <div class="flex-1 flex flex-col min-w-0">
+      <LaunchBanner v-if="trial" />
       <header class="h-14 bg-white border-b border-gray-100 flex items-center justify-between gap-4 px-6">
         <div class="min-w-0"><slot name="header"/></div>
         <SupportTicketButton />

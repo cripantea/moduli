@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CompiledModule;
 use App\Models\Tenant;
+use App\Services\LaunchOffer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -32,7 +33,7 @@ class SubscriptionController extends Controller
 
         return Inertia::render('Abbonamento', [
             'pronto' => $this->readyModule($request),
-            'prezzo' => 29,
+            'prezzo' => LaunchOffer::price(),
         ]);
     }
 
@@ -44,7 +45,7 @@ class SubscriptionController extends Controller
             return redirect()->route('compiled.index');
         }
 
-        if (! config('services.stripe.secret') || ! config('services.stripe.price')) {
+        if (! config('services.stripe.secret') || ! LaunchOffer::stripePrice()) {
             return back()->with('error', 'Pagamento non ancora disponibile: riprova tra poco.');
         }
 
@@ -54,7 +55,7 @@ class SubscriptionController extends Controller
 
         $session = $this->stripe()->checkout->sessions->create([
             'mode'                => 'subscription',
-            'line_items'          => [['price' => config('services.stripe.price'), 'quantity' => 1]],
+            'line_items'          => [['price' => LaunchOffer::stripePrice(), 'quantity' => 1]],
             'client_reference_id' => (string) $tenant->id,
             'metadata'            => ['app' => 'moduli', 'tenant_id' => $tenant->id],
             'subscription_data'   => ['metadata' => ['app' => 'moduli', 'tenant_id' => $tenant->id]],

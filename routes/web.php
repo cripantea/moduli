@@ -19,6 +19,9 @@ Route::get('/', function () {
     return Inertia::render('Landing');
 })->name('landing');
 
+// Landing dedicata alle campagne Meta.
+Route::get('/prova', fn () => Inertia::render('Prova'))->name('prova');
+
 Route::get('/termini', fn () => Inertia::render('Termini', [
     'azienda' => config('moduli.company'),
 ]))->name('termini');

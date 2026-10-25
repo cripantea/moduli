@@ -86,7 +86,10 @@ class AssistantService
             "- L'AI non ha trovato un campo: in **Template** aggiungilo a mano e posizionalo.",
             "- PDF scansionati storti o di bassa qualità vengono letti peggio: meglio il PDF originale.",
             "## Prezzo e abbonamento",
-            "- 29 € al mese IVA inclusa, tutto incluso: moduli e compilazioni illimitati, AI, archivio, videochiamata di onboarding.",
+            '- Prezzo: ' . (\App\Services\LaunchOffer::active()
+                ? 'prezzo di lancio ' . config('moduli.launch.price') . ' € al mese IVA inclusa fino al ' . \App\Services\LaunchOffer::endsAt()->format('d/m/Y H:i') . ' (ora italiana), poi ' . config('moduli.launch.standard_price') . ' €. Chi si abbona prima della scadenza resta a ' . config('moduli.launch.price') . ' € finché resta abbonato.'
+                : config('moduli.launch.standard_price') . ' € al mese IVA inclusa.'),
+            "- Tutto incluso: moduli e compilazioni illimitati, AI, archivio, 30 minuti di videochiamata con un tecnico che imposta i moduli con te (si prenota dopo l'attivazione).",
             "- Senza abbonamento si può caricare e compilare per provare, ma per scaricare il PDF serve attivarlo (pagamento con carta su Stripe).",
             "- Soddisfatto o rimborsato: entro 30 giorni dal primo pagamento si rimborsa tutto, basta chiederlo con **Assistenza**.",
             "- Disdetta con un clic dal pulsante **Abbonamento** in basso a sinistra (visibile quando l'abbonamento è attivo): resta attivo fino a fine mese, senza penali. Dallo stesso pulsante si cambia la carta e si scaricano le ricevute.",

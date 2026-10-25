@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import FusionsoftBadge from '@/Components/FusionsoftBadge.vue'
 import { whatsappUrl } from '@/support'
+import LaunchBanner from '@/Components/LaunchBanner.vue'
+import LaunchPrice from '@/Components/LaunchPrice.vue'
+import { useOffer } from '@/offer'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { Head, Link } from '@inertiajs/vue3'
 
@@ -13,6 +16,7 @@ const demoNomeCognome = computed(() => {
 })
 
 // ── Scroll-aware navbar ─────────────────────────────────────────────────────
+const { attiva: offertaAttiva, prezzo, offerta } = useOffer()
 const scrolled = ref(false)
 const onScroll = () => { scrolled.value = window.scrollY > 24 }
 onMounted(() => window.addEventListener('scroll', onScroll, { passive: true }))
@@ -175,6 +179,7 @@ const faqs = [
       ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100'
       : 'bg-white border-b border-transparent'"
   >
+    <LaunchBanner />
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
 
@@ -241,7 +246,7 @@ const faqs = [
   <!-- ════════════════════════════════════════════════════════════
        HERO
   ════════════════════════════════════════════════════════════ -->
-  <section class="pt-24 pb-16 lg:pt-32 lg:pb-24 bg-white overflow-hidden">
+  <section class="pt-32 pb-16 lg:pt-40 lg:pb-24 bg-white overflow-hidden">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="lg:grid lg:grid-cols-2 lg:gap-16 lg:items-center">
 
@@ -282,7 +287,10 @@ const faqs = [
             </button>
           </div>
 
-          <p class="mt-4 text-xs text-gray-400">29 €/mese · Disdici quando vuoi · Rimborso entro 30 giorni</p>
+          <p class="mt-4 text-xs text-gray-500">
+            <template v-if="offertaAttiva"><strong class="text-gray-900">Prezzo di lancio {{ prezzo }} €/mese</strong> (poi {{ offerta.prezzo_pieno }} €) · </template>
+            <template v-else>{{ prezzo }} €/mese · </template>30 minuti con un tecnico inclusi · Rimborso entro 30 giorni
+          </p>
         </div>
 
         <!-- Right: interactive product demo -->
@@ -704,13 +712,7 @@ const faqs = [
           </div>
         </div>
 
-        <div class="flex items-baseline gap-2 mb-1">
-          <span class="text-5xl font-extrabold text-gray-900">
-            €29
-          </span>
-          <span class="text-gray-500 text-sm">/mese</span>
-        </div>
-        <p class="text-sm text-gray-400 mb-6">IVA inclusa · Disdici con un clic</p>
+        <LaunchPrice class="mb-6" />
 
         <Link
           href="/register"
@@ -789,7 +791,10 @@ const faqs = [
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
         </svg>
       </Link>
-      <p class="mt-4 text-indigo-300 text-sm">29 €/mese · Disdici quando vuoi · Rimborso entro 30 giorni</p>
+      <p class="mt-4 text-indigo-200 text-sm">
+        <template v-if="offertaAttiva">Prezzo di lancio {{ prezzo }} €/mese, poi {{ offerta.prezzo_pieno }} € · </template>
+        <template v-else>{{ prezzo }} €/mese · </template>Disdici quando vuoi · Rimborso entro 30 giorni
+      </p>
     </div>
   </section>
 

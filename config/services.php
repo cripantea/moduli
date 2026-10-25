@@ -40,7 +40,8 @@ return [
     'stripe' => [
         'secret'         => env('STRIPE_SECRET'),
         'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
-        'price'          => env('STRIPE_PRICE_ID'),
+        'price'          => env('STRIPE_PRICE_ID'),            // 29 €/mese, prezzo di lancio
+        'price_standard' => env('STRIPE_PRICE_ID_STANDARD'),   // 49 €/mese, dopo il lancio
     ],
 
     // Assistente AI dentro l'app (stessa chiave di Fusion CRM).

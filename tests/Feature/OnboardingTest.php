@@ -293,3 +293,20 @@ test('without DeepSeek the assistant points to human support', function () {
     $this->actingAs(trialUser())->postJson('/assistente', ['message' => 'aiuto'])
         ->assertOk()->assertJsonPath('reply', fn ($r) => str_contains($r, 'Assistenza'));
 });
+
+test('the launch price ends at the deadline and checkout switches to the standard price', function () {
+    config(['moduli.launch.ends_at' => '2026-10-29 23:59:59', 'services.stripe.price' => 'price_29', 'services.stripe.price_standard' => 'price_49']);
+
+    $this->travelTo(\Illuminate\Support\Carbon::parse('2026-10-29 23:00:00', 'Europe/Rome'));
+    expect(\App\Services\LaunchOffer::active())->toBeTrue()
+        ->and(\App\Services\LaunchOffer::price())->toBe(29)
+        ->and(\App\Services\LaunchOffer::stripePrice())->toBe('price_29');
+
+    $this->travelTo(\Illuminate\Support\Carbon::parse('2026-10-30 00:00:01', 'Europe/Rome'));
+    expect(\App\Services\LaunchOffer::active())->toBeFalse()
+        ->and(\App\Services\LaunchOffer::price())->toBe(49)
+        ->and(\App\Services\LaunchOffer::stripePrice())->toBe('price_49');
+
+    $this->actingAs(trialUser())->get('/abbonamento')
+        ->assertInertia(fn ($page) => $page->where('prezzo', 49)->where('offerta.attiva', false));
+});
