@@ -22,6 +22,10 @@ return [
         'standard_price' => 49,
     ],
 
+    // Giorni gratis all'attivazione: si inserisce la carta (o Apple/Google Pay), il primo addebito arriva dopo.
+    // 0 = niente prova gratuita.
+    'free_trial_days' => (int) env('MODULI_FREE_TRIAL_DAYS', 7),
+
     'limits' => [
         'trial' => [
             'templates'        => 3,    // template salvati

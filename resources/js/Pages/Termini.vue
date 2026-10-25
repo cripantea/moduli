@@ -64,7 +64,9 @@ const aggiornati = '25 ottobre 2026'
           L'abbonamento costa <strong>49 € al mese</strong>. Fino al 29 ottobre 2026 alle 23:59 (ora italiana) vale il
           <strong>prezzo di lancio di 29 € al mese</strong>: chi si abbona entro quella data paga 29 € al mese per tutto il tempo in cui
           il suo abbonamento resta attivo. Si paga in anticipo con carta tramite Stripe e si rinnova automaticamente ogni mese finché
-          non lo disdici. Eventuali altre variazioni di prezzo ti saranno comunicate con almeno 30 giorni di anticipo e varranno dal
+          non lo disdici. Alla prima attivazione hai <strong>7 giorni gratuiti</strong>: inserisci la carta (o Apple Pay / Google Pay),
+          il primo addebito avviene alla fine dei 7 giorni e se disdici prima non paghi nulla. La prova gratuita vale una volta per azienda.
+          Eventuali altre variazioni di prezzo ti saranno comunicate con almeno 30 giorni di anticipo e varranno dal
           rinnovo successivo: se non le accetti puoi disdire prima.
         </p>
         <p>

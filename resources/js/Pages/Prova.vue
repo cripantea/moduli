@@ -86,7 +86,7 @@ const faqs = [
           <p class="mt-3 text-sm text-gray-500">
             <template v-if="offertaAttiva"><strong class="text-gray-900">{{ prezzo }} €/mese</strong> (poi {{ offerta.prezzo_pieno }} €)</template>
             <template v-else><strong class="text-gray-900">{{ prezzo }} €/mese</strong></template>
-            · rimborso entro 30 giorni, senza domande
+            · 7 giorni gratis · rimborso entro 30 giorni, senza domande
           </p>
         </div>
       </div>

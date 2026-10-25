@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
-import { Head, router, usePage } from '@inertiajs/vue3'
+import { Head, Link, router, usePage } from '@inertiajs/vue3'
 import { computed, ref } from 'vue'
 import { track } from '@/tracking'
 import LaunchPrice from '@/Components/LaunchPrice.vue'
@@ -8,6 +8,8 @@ import PlanHighlight from '@/Components/PlanHighlight.vue'
 import { fairUse, vatNote } from '@/plan'
 
 const props = defineProps<{
+  benvenuto: boolean
+  giorniGratis: number
   pronto: { id: number; template_name: string; created_at: string } | null
   prezzo: number
 }>()
@@ -33,6 +35,21 @@ function checkout() {
     </template>
 
     <div class="max-w-xl mx-auto py-10 px-4">
+      <!-- Subito dopo la registrazione: il pitch è il tecnico che imposta tutto -->
+      <div v-if="benvenuto">
+        <p class="text-sm font-semibold text-green-700">✓ Account creato</p>
+        <h2 class="mt-2 text-2xl font-extrabold text-gray-900 leading-tight">
+          Ultimo passo: {{ giorniGratis ? `${giorniGratis} giorni gratis` : 'attiva' }} e prenota il tecnico
+        </h2>
+        <p class="mt-2 text-gray-600">Un tecnico in videochiamata imposta con te i moduli che usi ogni giorno. Tu da lì li compili in 30 secondi.</p>
+        <ol class="mt-5 space-y-3">
+          <li v-for="(s, i) in [giorniGratis ? `Inizi ${giorniGratis} giorni gratis: oggi paghi 0 €, poi ${prezzo} €/mese. Disdici quando vuoi` : `Attivi Moduli: ${prezzo} €/mese, rimborso entro 30 giorni senza domande`, 'Subito dopo scegli giorno e ora della videochiamata', 'Il tecnico carica e imposta con te i tuoi moduli']" :key="i" class="flex gap-3 text-sm text-gray-800">
+            <span class="w-6 h-6 shrink-0 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center">{{ i + 1 }}</span>
+            <span class="pt-0.5">{{ s }}</span>
+          </li>
+        </ol>
+      </div>
+
       <div v-if="pronto" class="flex items-start gap-3 bg-green-50 border border-green-200 rounded-2xl px-5 py-4">
         <svg class="w-6 h-6 text-green-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
@@ -71,12 +88,17 @@ function checkout() {
           class="mt-6 w-full px-6 py-3 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 transition"
           @click="checkout"
         >
-          {{ loading ? 'Apro il pagamento…' : 'Attiva e scarica' }}
+          {{ loading ? 'Apro il pagamento…' : giorniGratis ? `Inizia ${giorniGratis} giorni gratis` : benvenuto ? 'Attiva e prenota il tecnico' : 'Attiva e scarica' }}
         </button>
-        <p class="mt-3 text-center text-xs text-gray-500">Pagamento sicuro con Stripe · carta o Apple/Google Pay</p>
+        <p v-if="giorniGratis" class="mt-3 text-center text-sm text-gray-700">Oggi paghi <strong>0 €</strong>. Dopo {{ giorniGratis }} giorni {{ prezzo }} €/mese, disdici quando vuoi.</p>
+        <p class="mt-2 text-center text-xs text-gray-500">Pagamento sicuro con Stripe · carta, Apple Pay o Google Pay</p>
         <p class="mt-2 text-center text-xs text-gray-400">{{ vatNote }} {{ fairUse }}</p>
         <p v-if="flashError" class="mt-3 text-center text-sm text-red-600">{{ flashError }}</p>
       </div>
+
+      <Link v-if="benvenuto" :href="route('onboarding')" class="mt-5 block text-center text-sm text-gray-500 hover:text-gray-800">
+        Prima voglio provare da solo →
+      </Link>
     </div>
   </AuthenticatedLayout>
 </template>

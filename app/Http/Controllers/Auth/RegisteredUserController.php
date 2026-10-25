@@ -41,6 +41,9 @@ class RegisteredUserController extends Controller
         $request->validate([
             // L'azienda non si chiede più in registrazione: la ragione sociale arriva col pagamento.
             'company' => 'nullable|string|max:255',
+            // Domande qualificanti del primo passo (facoltative per chi arriva da altri moduli).
+            'settore' => 'nullable|string|max:60',
+            'volume' => 'nullable|string|max:30',
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'password' => ['required', Rules\Password::defaults()],
@@ -54,6 +57,7 @@ class RegisteredUserController extends Controller
                 'plan' => 'trial',
                 'is_active' => true,
                 'source' => Funnel::source($request),
+                'settings' => array_filter(['settore' => $request->settore, 'volume' => $request->volume]) ?: null,
             ]);
 
             return User::create([
@@ -77,6 +81,7 @@ class RegisteredUserController extends Controller
         MetaConversions::send($request, 'CompleteRegistration', "reg-{$user->id}", $user);
         FusionCrm::registered($user);
 
-        return redirect(route('dashboard', absolute: false));
+        // Subito dopo la registrazione: attiva e prenota il tecnico (si può anche saltare e provare da soli).
+        return redirect(route('abbonamento', ['benvenuto' => 1], absolute: false));
     }
 }

@@ -37,6 +37,8 @@ class SubscriptionController extends Controller
         Funnel::hit('abbonamento', $request);
 
         return Inertia::render('Abbonamento', [
+            'benvenuto' => $request->boolean('benvenuto'),
+            'giorniGratis' => $request->user()->tenant->stripe_customer_id ? 0 : (int) config('moduli.free_trial_days'),
             'pronto' => $this->readyModule($request),
             'prezzo' => LaunchOffer::price(),
         ]);
@@ -65,7 +67,11 @@ class SubscriptionController extends Controller
             'line_items'          => [['price' => LaunchOffer::stripePrice(), 'quantity' => 1]],
             'client_reference_id' => (string) $tenant->id,
             'metadata'            => ['app' => 'moduli', 'tenant_id' => $tenant->id],
-            'subscription_data'   => ['metadata' => ['app' => 'moduli', 'tenant_id' => $tenant->id]],
+            'subscription_data'   => array_filter([
+                'metadata'          => ['app' => 'moduli', 'tenant_id' => $tenant->id],
+                // Prova gratuita: chi l'ha già usata (ha già un cliente Stripe) paga subito.
+                'trial_period_days' => ! $tenant->stripe_customer_id && config('moduli.free_trial_days') > 0 ? config('moduli.free_trial_days') : null,
+            ]),
             ...($tenant->stripe_customer_id
                 ? ['customer' => $tenant->stripe_customer_id, 'customer_update' => ['name' => 'auto', 'address' => 'auto']]
                 : ['customer_email' => $request->user()->email]),
@@ -118,13 +124,13 @@ class SubscriptionController extends Controller
                     }
 
                     // Il browser non lo ripete per la stessa sessione e Meta deduplica sull'eventID.
-                    $value = ($session->amount_total ?? 2900) / 100;
-                    $track[] = [
-                        'event'   => 'Purchase',
-                        'params'  => ['value' => $value, 'currency' => 'EUR'],
-                        'eventID' => $session->id,
-                    ];
-                    MetaConversions::send($request, 'Purchase', $session->id, $request->user(), ['value' => $value, 'currency' => 'EUR']);
+                    // Con la prova gratuita oggi si paga 0: per Meta è l'inizio di una prova, con il valore del primo mese.
+                    $trial = ($session->amount_total ?? 0) === 0;
+                    $event = $trial ? 'StartTrial' : 'Purchase';
+                    $value = $trial ? LaunchOffer::price() : $session->amount_total / 100;
+                    $params = ['value' => $value, 'currency' => 'EUR'] + ($trial ? ['predicted_ltv' => $value * 6] : []);
+                    $track[] = ['event' => $event, 'params' => $params, 'eventID' => $session->id];
+                    MetaConversions::send($request, $event, $session->id, $request->user(), $params);
                 }
             } catch (\Throwable $e) {
                 Log::warning('Stripe: verifica sessione al ritorno fallita', ['error' => $e->getMessage()]);
@@ -235,7 +241,7 @@ class SubscriptionController extends Controller
                 if ($tenant && $ended) {
                     $tenant->update(['plan' => 'trial']);
                     Log::info('Stripe: abbonamento chiuso, azienda tornata in prova', ['tenant' => $tenant->id]);
-                } elseif ($tenant && $object->status === 'active' && $tenant->isTrial()) {
+                } elseif ($tenant && in_array($object->status, ['active', 'trialing'], true) && $tenant->isTrial()) {
                     $tenant->update(['plan' => 'pro']);
                 }
                 break;

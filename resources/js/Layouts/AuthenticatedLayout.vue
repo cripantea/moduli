@@ -27,6 +27,10 @@ function manageSubscription() {
   router.post(route('abbonamento.gestisci'))
 }
 
+// Sul telefono il menu è un cassetto che si apre dal pulsante in alto e si chiude cambiando pagina.
+const menuOpen = ref(false)
+router.on('navigate', () => { menuOpen.value = false })
+
 function logout() {
   router.post(route('logout'))
 }
@@ -45,7 +49,11 @@ const initials = computed(() =>
   <div class="min-h-screen bg-gray-50 flex">
 
     <!-- ── Sidebar ──────────────────────────────────────── -->
-    <aside class="w-56 h-screen sticky top-0 bg-white border-r border-gray-100 flex flex-col shrink-0">
+    <div v-if="menuOpen" class="fixed inset-0 z-40 bg-black/30 md:hidden" @click="menuOpen = false" />
+    <aside
+      class="fixed inset-y-0 left-0 z-50 w-64 h-screen bg-white border-r border-gray-100 flex flex-col shrink-0 transition-transform md:sticky md:top-0 md:w-56 md:translate-x-0"
+      :class="menuOpen ? 'translate-x-0' : '-translate-x-full'"
+    >
 
       <!-- Logo -->
       <div class="h-14 flex items-center px-4 border-b border-gray-100 gap-2">
@@ -167,8 +175,11 @@ const initials = computed(() =>
     <!-- ── Main ──────────────────────────────────────────── -->
     <div class="flex-1 flex flex-col min-w-0">
       <LaunchBanner v-if="trial" />
-      <header class="h-14 bg-white border-b border-gray-100 flex items-center justify-between gap-4 px-6">
-        <div class="min-w-0"><slot name="header"/></div>
+      <header class="h-14 bg-white border-b border-gray-100 flex items-center justify-between gap-3 px-4 md:px-6">
+        <button type="button" class="md:hidden -ml-1 p-2 rounded-lg text-gray-600 hover:bg-gray-100" aria-label="Apri il menu" @click="menuOpen = true">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <div class="min-w-0 flex-1"><slot name="header"/></div>
         <SupportTicketButton />
       </header>
 
@@ -181,7 +192,7 @@ const initials = computed(() =>
         <div
           v-if="flash?.success || flash?.error"
           :class="[
-            'mx-6 mt-4 px-4 py-3 rounded-lg text-sm font-medium',
+            'mx-4 md:mx-6 mt-4 px-4 py-3 rounded-lg text-sm font-medium',
             flash?.success
               ? 'bg-green-50 text-green-800 border border-green-200'
               : 'bg-red-50 text-red-800 border border-red-200'
@@ -191,7 +202,7 @@ const initials = computed(() =>
         </div>
       </Transition>
 
-      <main class="flex-1 p-6">
+      <main class="flex-1 p-4 md:p-6">
         <slot/>
       </main>
 

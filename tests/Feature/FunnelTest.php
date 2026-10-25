@@ -72,3 +72,16 @@ test('without consent nothing is sent to Meta from the server', function () {
 
     Http::assertNotSent(fn ($request) => str_contains($request->url(), 'graph.facebook.com'));
 });
+
+test('the qualifying answers are saved on the company and the payment page offers the free days', function () {
+    $this->post('/register', [
+        'settore' => 'Agenzia immobiliare', 'volume' => 'Da 10 a 50',
+        'name' => 'Sara Neri', 'email' => 'sara@example.com', 'password' => 'password', 'phone' => '333 222 1111',
+    ]);
+
+    $user = User::where('email', 'sara@example.com')->first();
+    expect($user->tenant->settings)->toBe(['settore' => 'Agenzia immobiliare', 'volume' => 'Da 10 a 50']);
+
+    $this->get('/abbonamento?benvenuto=1')
+        ->assertInertia(fn ($page) => $page->where('benvenuto', true)->where('giorniGratis', 7));
+});

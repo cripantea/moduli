@@ -4,9 +4,13 @@ import { Head, Link, useForm } from '@inertiajs/vue3'
 import InputError from '@/Components/InputError.vue'
 import { computed, nextTick, ref } from 'vue'
 
-// Registrazione in 3 passi brevi: email, nome e cellulare, password. L'azienda non si chiede:
-// la ragione sociale arriva al pagamento.
+// Registrazione in 4 passi brevi: due domande a scelta rapida, email, nome e cellulare, password.
+// L'azienda non si chiede: la ragione sociale arriva al pagamento.
+const settori = ['Agenzia assicurativa o broker', 'Studio professionale', 'Agenzia immobiliare', 'CAF o patronato', 'Altro']
+const volumi = ['Meno di 10', 'Da 10 a 50', 'Più di 50']
 const form = useForm({
+  settore: '',
+  volume: '',
   name: '',
   email: '',
   phone: '',
@@ -16,9 +20,10 @@ const form = useForm({
 const step = ref(1)
 const showPassword = ref(false)
 const formEl = ref<HTMLFormElement | null>(null)
-const titles = ['La tua email', 'Come ti chiami?', 'Scegli una password']
-const subtitles = ['Ci serve per farti accedere e mandarti le fatture.', 'Il cellulare serve per fissare i 30 minuti col tecnico.', 'Ultimo passo: almeno 8 caratteri.']
-const stepFields: Record<number, string[]> = { 1: ['email'], 2: ['name', 'phone'], 3: ['password'] }
+const STEPS = 4
+const titles = ['Due domande veloci', 'La tua email', 'Come ti chiami?', 'Scegli una password']
+const subtitles = ['Così il tecnico arriva preparato sui tuoi moduli.', 'Ci serve per farti accedere e mandarti le fatture.', 'Il cellulare serve per fissare i 30 minuti col tecnico.', 'Ultimo passo: almeno 8 caratteri.']
+const stepFields: Record<number, string[]> = { 1: ['settore', 'volume'], 2: ['email'], 3: ['name', 'phone'], 4: ['password'] }
 const title = computed(() => titles[step.value - 1])
 const subtitle = computed(() => subtitles[step.value - 1])
 
@@ -26,7 +31,17 @@ function focusFirst() {
   nextTick(() => formEl.value?.querySelector<HTMLInputElement>('input:not([type=hidden])')?.focus())
 }
 
+// Al primo passo si tocca la risposta: quando ci sono tutte e due si va avanti da soli.
+function pick(field: 'settore' | 'volume', value: string) {
+  form[field] = value
+  if (form.settore && form.volume) {
+    step.value = 2
+    focusFirst()
+  }
+}
+
 function stepValid(): boolean {
+  if (step.value === 1 && (!form.settore || !form.volume)) return false
   const inputs = Array.from(formEl.value?.querySelectorAll<HTMLInputElement>('input') ?? [])
   const invalid = inputs.find((input) => !input.checkValidity())
   invalid?.reportValidity()
@@ -40,7 +55,7 @@ function back() {
 
 const submit = () => {
   if (!stepValid()) return
-  if (step.value < 3) {
+  if (step.value < STEPS) {
     step.value++
     focusFirst()
     return
@@ -48,7 +63,7 @@ const submit = () => {
   form.post(route('register'), {
     onError: (errors) => {
       // Torna al primo passo che ha un errore.
-      const first = [1, 2, 3].find((n) => stepFields[n].some((field) => field in errors))
+      const first = [1, 2, 3, 4].find((n) => stepFields[n].some((field) => field in errors))
       if (first) step.value = first
       focusFirst()
     },
@@ -93,11 +108,11 @@ const submit = () => {
         <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
           <div class="mb-6">
             <div class="flex items-center justify-between text-xs text-gray-500">
-              <span>Passo {{ step }} di 3</span>
+              <span>Passo {{ step }} di {{ STEPS }}</span>
               <button v-if="step > 1" type="button" class="text-indigo-600 hover:underline" @click="back">Indietro</button>
             </div>
             <div class="mt-2 h-1.5 rounded-full bg-gray-100">
-              <div class="h-1.5 rounded-full bg-indigo-600 transition-all" :style="{ width: `${(step / 3) * 100}%` }" />
+              <div class="h-1.5 rounded-full bg-indigo-600 transition-all" :style="{ width: `${(step / STEPS) * 100}%` }" />
             </div>
             <h2 class="mt-5 text-lg font-bold text-gray-900">{{ title }}</h2>
             <p class="mt-1 text-sm text-gray-500">{{ subtitle }}</p>
@@ -105,7 +120,32 @@ const submit = () => {
 
           <form ref="formEl" @submit.prevent="submit" class="space-y-5" novalidate>
 
-            <div v-if="step === 1">
+            <template v-if="step === 1">
+              <fieldset>
+                <legend class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Che lavoro fai?</legend>
+                <div class="flex flex-wrap gap-2">
+                  <button
+                    v-for="o in settori" :key="o" type="button"
+                    class="px-3 py-2 rounded-lg border text-sm transition"
+                    :class="form.settore === o ? 'border-indigo-600 bg-indigo-50 text-indigo-700 font-semibold' : 'border-gray-300 text-gray-700 hover:bg-gray-50'"
+                    @click="pick('settore', o)"
+                  >{{ o }}</button>
+                </div>
+              </fieldset>
+              <fieldset>
+                <legend class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Quanti moduli compili a settimana?</legend>
+                <div class="flex flex-wrap gap-2">
+                  <button
+                    v-for="o in volumi" :key="o" type="button"
+                    class="px-3 py-2 rounded-lg border text-sm transition"
+                    :class="form.volume === o ? 'border-indigo-600 bg-indigo-50 text-indigo-700 font-semibold' : 'border-gray-300 text-gray-700 hover:bg-gray-50'"
+                    @click="pick('volume', o)"
+                  >{{ o }}</button>
+                </div>
+              </fieldset>
+            </template>
+
+            <div v-if="step === 2">
               <label for="email" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Email</label>
               <input
                 id="email"
@@ -122,7 +162,7 @@ const submit = () => {
               <InputError :message="form.errors.email" class="mt-1.5" />
             </div>
 
-            <template v-if="step === 2">
+            <template v-if="step === 3">
               <div>
                 <label for="name" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Nome e cognome</label>
                 <input
@@ -156,7 +196,7 @@ const submit = () => {
               </div>
             </template>
 
-            <div v-if="step === 3">
+            <div v-if="step === 4">
               <label for="password" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Password</label>
               <div class="relative">
                 <input
@@ -186,7 +226,7 @@ const submit = () => {
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
               </svg>
-              {{ form.processing ? 'Creazione account…' : step < 3 ? 'Continua' : 'Crea il tuo account' }}
+              {{ form.processing ? 'Creazione account…' : step < STEPS ? 'Continua' : 'Crea il tuo account' }}
             </button>
 
           </form>

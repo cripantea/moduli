@@ -26,7 +26,11 @@ class FusionCrm
             'phone'        => $user->phone ?: null,
             'source'       => 'Moduli',
             'tags'         => ['moduli', 'moduli-prova'],
-            'customFields' => ['moduli_azienda' => $user->tenant?->name],
+            'customFields' => array_filter([
+                'moduli_azienda' => $user->tenant?->name,
+                'moduli_settore' => $user->tenant?->settings['settore'] ?? null,
+                'moduli_volume'  => $user->tenant?->settings['volume'] ?? null,
+            ]),
             'company'      => $user->tenant?->name,
         ]);
     }
