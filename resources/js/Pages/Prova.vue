@@ -28,14 +28,14 @@ const faqs = [
   { q: 'Il tecnico è compreso nel prezzo?', a: 'Sì. Dopo l’attivazione prenoti tu giorno e ora: 30 minuti in videochiamata per impostare i tuoi moduli. Nessun costo in più.' },
   { q: 'Funziona con i miei moduli?', a: 'Sì: carichi il PDF che usi già. Deleghe, denunce, richieste, contratti, schede cliente.' },
   { q: 'Ricevo la fattura? C’è l’IVA?', a: 'Sì, fattura elettronica: i dati li inserisci al pagamento. Fusionsoft è in regime forfettario, quindi niente IVA: il prezzo che vedi è quello che paghi.' },
-  { q: 'E se non fa per me?', a: 'Entro 30 giorni dal primo pagamento ti rimborsiamo tutto. Disdici con un clic quando vuoi.' },
+  { q: 'E se non fa per me?', a: 'Entro 30 giorni dal primo pagamento ti rimborsiamo tutto, senza domande. Disdici con un clic quando vuoi.' },
 ]
 </script>
 
 <template>
   <Head>
     <title>Fusion Moduli: i tuoi moduli PDF in 30 secondi, e un tecnico te li imposta</title>
-    <meta name="description" content="Carica il modulo PDF che compili ogni giorno: un tecnico te lo imposta in 30 minuti di videochiamata, poi lo compili in 30 secondi. 29 €/mese, rimborso entro 30 giorni.">
+    <meta name="description" content="Carica il modulo PDF che compili ogni giorno: un tecnico te lo imposta in 30 minuti di videochiamata, poi lo compili in 30 secondi. 29 €/mese, rimborso entro 30 giorni senza domande.">
     <meta name="robots" content="noindex">
   </Head>
 
@@ -43,7 +43,7 @@ const faqs = [
     <LaunchBanner />
     <!-- Barra semplice: logo e accesso -->
     <header class="border-b border-gray-100">
-      <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
         <span class="flex items-center gap-2.5">
           <span class="w-8 h-8 rounded-lg bg-blue-700 flex items-center justify-center">
             <svg class="w-4 h-4" viewBox="0 0 18 18" fill="none">
@@ -59,24 +59,35 @@ const faqs = [
       </div>
     </header>
 
-    <!-- Promessa -->
-    <section class="max-w-6xl mx-auto px-4 sm:px-6 pt-14 pb-12 lg:pt-20 grid gap-12 lg:grid-cols-2 lg:items-center">
+    <!-- Promessa: la stessa idea della pubblicità (Adobe 2:52, Moduli 0:30), pulsante subito visibile -->
+    <section class="max-w-6xl mx-auto px-4 sm:px-6 pt-8 pb-10 lg:pt-20 grid gap-8 lg:gap-12 lg:grid-cols-2 lg:items-center">
       <div>
-        <h1 class="text-4xl sm:text-5xl font-extrabold leading-tight tracking-tight">
-          I tuoi moduli PDF compilati in 30 secondi.
+        <h1 class="text-[2rem] leading-tight sm:text-5xl font-extrabold tracking-tight">
+          Lo stesso modulo PDF, compilato in 30 secondi.
         </h1>
+        <div class="mt-5 grid grid-cols-2 gap-3 max-w-md" aria-label="Tempo per compilare un modulo">
+          <div class="rounded-xl border border-gray-200 px-4 py-3">
+            <p class="text-xs font-medium text-gray-500">Con Adobe</p>
+            <p class="text-2xl font-extrabold text-red-600 tabular-nums line-through decoration-2">2:52</p>
+          </div>
+          <div class="rounded-xl border-2 border-indigo-600 px-4 py-3">
+            <p class="text-xs font-medium text-gray-500">Con Fusion Moduli</p>
+            <p class="text-2xl font-extrabold text-indigo-600 tabular-nums">0:30</p>
+          </div>
+        </div>
         <p class="mt-5 text-lg text-gray-600 leading-relaxed">
-          Basta Adobe col cliente che aspetta. Carichi il modulo che usi ogni giorno e
-          <strong class="text-gray-900">un tecnico te lo imposta in 30 minuti di videochiamata</strong>. Da lì lo compili in pochi secondi.
+          Niente più Adobe col cliente che aspetta: carichi il PDF una volta, poi scrivi i dati e lo scarichi pronto.
+          <strong class="text-gray-900">Un tecnico ti aiuta a impostarlo</strong>, incluso.
         </p>
-        <div class="mt-8 flex flex-col sm:flex-row sm:items-center gap-4">
-          <Link href="/register" class="inline-flex justify-center items-center px-7 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-colors">
+        <div class="mt-6">
+          <Link href="/register" class="flex sm:inline-flex justify-center items-center px-7 py-4 bg-indigo-600 hover:bg-indigo-700 text-white text-lg font-semibold rounded-xl transition-colors">
             Inizia ora
           </Link>
-          <span class="text-sm text-gray-500">
-            <template v-if="offertaAttiva"><strong class="text-gray-900">{{ prezzo }} €/mese</strong> (poi {{ offerta.prezzo_pieno }} €) · tecnico incluso · rimborso 30 giorni</template>
-            <template v-else>{{ prezzo }} €/mese · tecnico incluso · rimborso entro 30 giorni</template>
-          </span>
+          <p class="mt-3 text-sm text-gray-500">
+            <template v-if="offertaAttiva"><strong class="text-gray-900">{{ prezzo }} €/mese</strong> (poi {{ offerta.prezzo_pieno }} €)</template>
+            <template v-else><strong class="text-gray-900">{{ prezzo }} €/mese</strong></template>
+            · rimborso entro 30 giorni, senza domande
+          </p>
         </div>
       </div>
       <DemoVideo />
@@ -109,7 +120,7 @@ const faqs = [
           <Link href="/register" class="mt-8 flex justify-center px-6 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-colors">
             Inizia ora
           </Link>
-          <p class="mt-4 text-center text-sm text-gray-500">Soddisfatto o rimborsato entro 30 giorni · disdici con un clic</p>
+          <p class="mt-4 text-center text-sm text-gray-500">Rimborso entro 30 giorni, senza domande · disdici con un clic</p>
           <p class="mt-3 text-center text-xs text-gray-400">{{ vatNote }}</p>
           <p class="mt-2 text-center text-xs text-gray-400">{{ fairUse }}</p>
         </div>
