@@ -36,7 +36,9 @@ Route::middleware(['auth', 'active', 'tenant'])->group(function () {
     Route::get('/templates/{template}/edit', [ModuleTemplateController::class, 'edit'])->name('templates.edit');
     Route::put('/templates/{template}', [ModuleTemplateController::class, 'update'])->name('templates.update');
     Route::delete('/templates/{template}', [ModuleTemplateController::class, 'destroy'])->name('templates.destroy');
-    Route::post('/templates/upload-pdf', [ModuleTemplateController::class, 'uploadPdf'])->name('templates.upload-pdf');
+    Route::post('/templates/upload-pdf', [ModuleTemplateController::class, 'uploadPdf'])
+        ->middleware('throttle:pdf-upload')
+        ->name('templates.upload-pdf');
     Route::get('/templates/preview', [ModuleTemplateController::class, 'previewPage'])
         ->middleware('throttle:pdf-preview')
         ->name('templates.preview');

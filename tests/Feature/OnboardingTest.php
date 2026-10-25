@@ -213,3 +213,37 @@ test('a completed checkout keeps the invoicing details', function () {
     expect($user->tenant->fresh()->billing_details)
         ->toMatchArray(['ragione_sociale' => 'Prova Srl', 'partita_iva' => 'IT12345678901', 'sdi_o_pec' => 'M5UXCR1', 'citta' => 'Milano', 'codice_fiscale' => null]);
 });
+
+test('a trial company cannot save more templates than the trial allows', function () {
+    $user = trialUser();
+    foreach (range(1, config('moduli.limits.trial.templates')) as $i) {
+        ModuleTemplate::withoutGlobalScopes()->create([
+            'tenant_id' => $user->tenant_id, 'name' => "T{$i}",
+            'pdf_template_s3_key' => "tenants/{$user->tenant_id}/templates/t{$i}.pdf", 'fields_schema' => [],
+        ]);
+    }
+
+    $this->actingAs($user)->from('/benvenuto')->post('/templates', ['name' => 'Altro', 'fields_schema' => []])
+        ->assertRedirect('/benvenuto')
+        ->assertSessionHas('error');
+
+    expect(ModuleTemplate::withoutGlobalScopes()->where('tenant_id', $user->tenant_id)->count())
+        ->toBe(config('moduli.limits.trial.templates'));
+});
+
+test('registrations from the same address are throttled', function () {
+    foreach (range(1, config('moduli.limits.registrations_per_ip_per_hour')) as $i) {
+        $this->post('/register', [
+            'company' => "Azienda {$i}", 'name' => 'Bot', 'email' => "bot{$i}@example.com",
+            'password' => 'password', 'password_confirmation' => 'password',
+        ]);
+        auth()->logout();
+    }
+
+    $this->post('/register', [
+        'company' => 'Azienda extra', 'name' => 'Bot', 'email' => 'extra@example.com',
+        'password' => 'password', 'password_confirmation' => 'password',
+    ])->assertSessionHasErrors('email');
+
+    expect(\App\Models\User::where('email', 'extra@example.com')->exists())->toBeFalse();
+});

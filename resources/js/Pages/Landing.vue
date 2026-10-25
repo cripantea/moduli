@@ -74,29 +74,29 @@ const templates = [
 ]
 
 const problemItems = [
-  { icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', title: 'PDF compilati a mano', desc: 'Correzioni con bianchetto, grafia illeggibile, campi che non entrano nello spazio disponibile.' },
-  { icon: 'M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z', title: 'Stessi dati riscritti più volte', desc: "Nome, data e codice fiscale copiati manualmente su ogni documento dell'incartamento." },
-  { icon: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z', title: 'Campi dimenticati o compilati male', desc: 'Documenti restituiti al mittente, firme mancanti, sezioni saltate per distrazione.' },
-  { icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', title: 'Documenti non uniformi', desc: 'Ogni operatore usa una versione diversa del modulo. Nessuna coerenza tra uffici o colleghi.' },
+  { icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', title: 'Adobe o il browser, campo per campo', desc: 'Clic, scrivi, il testo non entra, rimpicciolisci, riprovi. Per un modulo che compili uguale ogni giorno.' },
+  { icon: 'M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z', title: 'Il cliente davanti che aspetta', desc: 'Dieci minuti per una delega o una denuncia fanno una brutta figura. Con Moduli bastano pochi secondi.' },
+  { icon: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z', title: 'Errori e campi dimenticati', desc: 'Una casella saltata e il documento torna indietro. Moduli ti chiede i campi in ordine, sempre gli stessi.' },
+  { icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', title: 'File sparsi tra download e email', desc: '"modulo_finale_v2.pdf" dov\'era? Ogni compilazione resta in archivio, cercabile e riscaricabile.' },
 ]
 
 const steps = [
   {
     num: '01',
-    title: 'Scegli il modulo',
-    desc: 'Apri la libreria dei tuoi modelli e seleziona il documento da compilare. Tutti i moduli della tua organizzazione sono in un unico posto.',
+    title: 'Carica il tuo PDF',
+    desc: "Il modulo che usi tutti i giorni, così com'è. L'AI trova da sola i campi da compilare e ti mostra dove scriverà: se serve, li sistemi trascinandoli.",
     icon: 'M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z',
   },
   {
     num: '02',
-    title: 'Compila i dati',
-    desc: "L'interfaccia ti guida campo per campo. Ogni dato inserito appare immediatamente nel documento finale, a destra dello schermo.",
+    title: 'Compila in pochi secondi',
+    desc: "Scrivi i dati in un modulo semplice, campo dopo campo, e vedi il PDF riempirsi in tempo reale.",
     icon: 'M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z',
   },
   {
     num: '03',
-    title: 'Genera il documento',
-    desc: "Quando tutti i campi sono compilati, premi il pulsante e scarica il PDF completo, pronto per la firma o la stampa.",
+    title: 'Scarica e ritrova tutto',
+    desc: "Il PDF è pronto da stampare o firmare. Ogni compilazione resta in archivio: la ritrovi e la riscarichi quando vuoi.",
     icon: 'M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
   },
 ]
@@ -157,10 +157,12 @@ const faqs = [
 
 <template>
   <Head>
-    <title>Fusion Moduli — Compila e genera documenti più velocemente</title>
-    <meta name="description" content="Digitalizza i moduli della tua azienda. Compila i dati attraverso procedure guidate, visualizza il documento in tempo reale e genera il file finale.">
-    <meta property="og:title" content="Fusion Moduli — Compila e genera documenti più velocemente">
-    <meta property="og:description" content="Digitalizza i moduli della tua azienda. Compila i dati attraverso procedure guidate, visualizza il documento in tempo reale e genera il file finale.">
+    <title>Fusion Moduli — Compila i tuoi moduli PDF in pochi secondi, senza Adobe</title>
+    <meta name="description" content="Carica il modulo PDF che compili ogni giorno: l'AI trova i campi, tu lo compili in pochi secondi e ogni documento resta in archivio. 29 €/mese, rimborso entro 30 giorni.">
+    <meta property="og:title" content="Fusion Moduli — Compila i tuoi moduli PDF in pochi secondi, senza Adobe">
+    <meta property="og:description" content="Carica il modulo PDF che compili ogni giorno: l'AI trova i campi, tu lo compili in pochi secondi e ogni documento resta in archivio.">
+    <meta property="og:url" content="https://moduli.fusionsoft.it/">
+    <link rel="canonical" href="https://moduli.fusionsoft.it/">
   </Head>
 
   <!-- ════════════════════════════════════════════════════════════
@@ -250,11 +252,11 @@ const faqs = [
           </div>
 
           <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-900 leading-tight tracking-tight">
-            Trasforma i tuoi moduli in procedure digitali guidate.
+            Basta compilare PDF con Adobe mentre il cliente aspetta.
           </h1>
           <p class="mt-5 text-lg text-gray-500 leading-relaxed">
-            Inserisci i dati attraverso un'interfaccia pulita e guarda il documento
-            aggiornarsi in tempo reale. Genera il file finale in un clic.
+            Carichi una volta il modulo che usi tutti i giorni, l'AI trova i campi.
+            Da lì lo compili in pochi secondi, sempre uguale, e ogni documento resta in archivio.
           </p>
 
           <div class="mt-8 flex flex-wrap gap-3">
@@ -267,16 +269,7 @@ const faqs = [
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
               </svg>
             </Link>
-            <button
-              @click="scrollTo('video-demo')"
-              class="inline-flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 hover:border-gray-300 text-gray-700 font-semibold rounded-lg transition-colors text-sm hover:bg-gray-50"
-            >
-              <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-              </svg>
-              Guarda come funziona
-            </button>
+
           </div>
 
           <p class="mt-4 text-xs text-gray-400">29 €/mese · Disdici quando vuoi · Rimborso entro 30 giorni</p>
@@ -390,34 +383,7 @@ const faqs = [
     </div>
   </section>
 
-  <!-- ════════════════════════════════════════════════════════════
-       VIDEO DEMO
-  ════════════════════════════════════════════════════════════ -->
-  <section id="video-demo" class="py-20 lg:py-28 bg-gray-900">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-      <p class="text-indigo-400 text-sm font-semibold uppercase tracking-widest mb-3">Demo</p>
-      <h2 class="text-3xl sm:text-4xl font-bold text-white mb-4">Guarda come funziona in meno di un minuto.</h2>
-      <p class="text-gray-400 text-lg mb-10 max-w-xl mx-auto">
-        Dal caricamento del documento alla generazione del PDF: tre passaggi, zero complicazioni.
-      </p>
-
-      <!-- Video placeholder — replace src with actual embed or <video> tag -->
-      <div class="relative aspect-video rounded-2xl overflow-hidden bg-gray-800 border border-gray-700 shadow-2xl group cursor-pointer">
-        <!-- Placeholder content -->
-        <div class="absolute inset-0 flex flex-col items-center justify-center">
-          <div class="w-16 h-16 rounded-full bg-white/10 border border-white/20 flex items-center justify-center group-hover:bg-white/20 transition-colors">
-            <svg class="w-7 h-7 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z"/>
-            </svg>
-          </div>
-          <p class="mt-4 text-gray-400 text-sm">Video demo — disponibile a breve</p>
-        </div>
-        <!-- Replace this comment with an <iframe> or <video> when the recording is ready:
-             <iframe src="https://..." class="absolute inset-0 w-full h-full" frameborder="0" allowfullscreen></iframe>
-        -->
-      </div>
-    </div>
-  </section>
+  <!-- Sezione video demo: da rimettere quando c'è la registrazione vera (vedi git history) -->
 
   <!-- ════════════════════════════════════════════════════════════
        PROBLEMA
@@ -425,9 +391,10 @@ const faqs = [
   <section class="py-20 lg:py-28 bg-gray-50">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-14">
-        <h2 class="text-3xl sm:text-4xl font-bold text-gray-900">Compilare documenti non dovrebbe richiedere tutto questo tempo.</h2>
+        <h2 class="text-3xl sm:text-4xl font-bold text-gray-900">Lo stesso modulo, ogni giorno, ricompilato da capo.</h2>
         <p class="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">
-          Eppure ogni giorno nelle aziende si perde tempo su attività che potrebbero essere eliminate.
+          Apri il PDF con Adobe o col browser, clicchi campo per campo, il testo non entra, salvi, rinomini, lo cerchi di nuovo il giorno dopo.
+          Il cliente intanto è lì davanti che aspetta.
         </p>
       </div>
 
@@ -774,11 +741,11 @@ const faqs = [
   <section class="py-20 lg:py-28 bg-indigo-600">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
       <h2 class="text-3xl sm:text-4xl font-bold text-white mb-4">
-        Smetti di compilare documenti a mano.
+        Il prossimo modulo compilalo in 30 secondi.
       </h2>
       <p class="text-indigo-200 text-lg mb-10 max-w-xl mx-auto leading-relaxed">
-        Trasforma i moduli che usi ogni giorno in procedure semplici e guidate.
-        Il tuo team li compilerà correttamente al primo tentativo.
+        Carica il modulo che compili più spesso: l'AI lo prepara per te.
+        Da domani niente più Adobe, e trovi ogni documento nell'archivio.
       </p>
       <Link
         href="/register"
@@ -846,8 +813,7 @@ const faqs = [
           <FusionsoftBadge dark />
         </div>
         <div class="flex gap-5">
-          <a href="#" class="hover:text-white transition-colors">Privacy Policy</a>
-          <a href="#" class="hover:text-white transition-colors">Termini di servizio</a>
+          <a href="https://fusionsoft.it/privacy" target="_blank" rel="noopener" class="hover:text-white transition-colors">Privacy Policy</a>
         </div>
       </div>
     </div>

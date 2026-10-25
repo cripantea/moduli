@@ -45,10 +45,15 @@ class CompiledModuleController extends Controller
     {
         $request->validate([
             'module_template_id' => ['required', 'exists:module_templates,id'],
-            'values'             => ['nullable', 'array'],
+            'values'             => ['nullable', 'array', 'max:300'],
         ]);
 
         $template = ModuleTemplate::findOrFail($request->module_template_id);
+
+        if ($request->user()->tenant?->isTrial() && CompiledModule::count() >= config('moduli.limits.trial.compiled')) {
+            return redirect()->route('abbonamento')
+                ->with('error', "Hai raggiunto il limite di compilazioni della prova. Attiva l'abbonamento per continuare.");
+        }
 
         $filler = app(PdfFormFillerService::class);
         $s3Key  = $filler->compile($template, $request->values ?? []);

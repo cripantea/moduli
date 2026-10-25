@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import FusionsoftBadge from '@/Components/FusionsoftBadge.vue'
 import { computed, ref } from 'vue'
 import { Link, usePage, router } from '@inertiajs/vue3'
 import type { PageProps } from '@/types'
@@ -189,10 +188,6 @@ const initials = computed(() =>
       <main class="flex-1 p-6">
         <slot/>
       </main>
-
-      <footer class="px-6 py-4 flex justify-end">
-        <FusionsoftBadge />
-      </footer>
     </div>
 
   </div>

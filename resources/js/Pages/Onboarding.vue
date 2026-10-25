@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
+import FieldCoordEditor from '@/Components/Templates/FieldCoordEditor.vue'
 import { Head, useForm } from '@inertiajs/vue3'
 import { ref } from 'vue'
 import axios from 'axios'
 
 interface Field {
+  _uid: number
   name: string
   label: string
   type: string
@@ -13,7 +15,13 @@ interface Field {
   x?: number
   y?: number
   w?: number
+  lines?: number
+  line_gap?: number
+  comb?: number
 }
+
+// Su telefono si può caricare il PDF, ma sistemare le posizioni dei campi richiede il computer.
+const smallScreen = typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches
 
 type Step = 'upload' | 'reading' | 'ready'
 
@@ -48,10 +56,10 @@ async function handleFile(file: File | undefined) {
     })
     form.pdf_template_s3_key = up.data.s3_key
 
-    const ex = await axios.post<{ fields: Field[] }>(route('templates.extract-fields'), {
+    const ex = await axios.post<{ fields: Omit<Field, '_uid'>[] }>(route('templates.extract-fields'), {
       s3_key: up.data.s3_key,
     })
-    form.fields_schema = ex.data.fields
+    form.fields_schema = ex.data.fields.map((f, i) => ({ ...f, _uid: i + 1 }))
     step.value = 'ready'
   } catch (err) {
     const data = axios.isAxiosError(err) ? err.response?.data : null
@@ -71,6 +79,10 @@ function onDrop(e: DragEvent) {
   handleFile(e.dataTransfer?.files?.[0])
 }
 
+function removeField(uid: number) {
+  form.fields_schema = form.fields_schema.filter(f => f._uid !== uid)
+}
+
 function startCompiling() {
   form.post(route('templates.store'))
 }
@@ -84,7 +96,7 @@ function startCompiling() {
       <h1 class="text-base font-semibold text-gray-900">Il tuo primo modulo</h1>
     </template>
 
-    <div class="max-w-2xl mx-auto py-10 px-4">
+    <div class="mx-auto py-10 px-4" :class="step === 'ready' ? 'max-w-6xl' : 'max-w-2xl'">
       <!-- Passi -->
       <ol class="flex items-center gap-2 text-xs font-medium text-gray-400 mb-8">
         <li :class="step === 'upload' ? 'text-indigo-600' : 'text-gray-900'">1. Carica il PDF</li>
@@ -98,7 +110,13 @@ function startCompiling() {
       <div v-if="step === 'upload'">
         <h2 class="text-2xl font-bold text-gray-900">Carica un modulo che compili spesso</h2>
         <p class="mt-2 text-sm text-gray-600">
-          Un PDF qualsiasi: denuncia, delega, modulo di richiesta. L'AI riconosce da sola i campi da compilare.
+          Quello che oggi compili con Adobe o col browser, magari con il cliente davanti che aspetta.
+          L'AI riconosce da sola i campi: da qui in poi lo compili in pochi secondi, sempre uguale.
+        </p>
+
+        <p v-if="smallScreen" class="mt-4 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-900">
+          Moduli si usa meglio dal computer: per controllare i campi sul PDF serve uno schermo grande.
+          Il tuo account è già pronto, accedi da PC su <span class="font-semibold">moduli.fusionsoft.it</span>.
         </p>
 
         <label
@@ -126,19 +144,41 @@ function startCompiling() {
         <p class="mt-2 text-sm text-gray-600">Cerca i campi da compilare. Di solito ci vogliono 20–40 secondi.</p>
       </div>
 
-      <!-- 3. Campi trovati -->
+      <!-- 3. Campi trovati: il cliente controlla dove scriverà e corregge prima di compilare -->
       <div v-else>
         <h2 class="text-2xl font-bold text-gray-900">
           Fatto: {{ form.fields_schema.length }} {{ form.fields_schema.length === 1 ? 'campo trovato' : 'campi trovati' }}
         </h2>
-        <p class="mt-2 text-sm text-gray-600">Ora compilalo: vedi il PDF riempirsi mentre scrivi.</p>
+        <p class="mt-2 text-sm text-gray-600">
+          Controlla dove scriverà Moduli: ogni linea blu è un campo. Se una è fuori posto trascinala sopra la riga giusta;
+          puoi anche rinominare o togliere i campi. Potrai sempre modificarli da "Template".
+        </p>
 
-        <ul class="mt-6 bg-white border border-gray-200 rounded-2xl divide-y divide-gray-100 max-h-72 overflow-y-auto">
-          <li v-for="f in form.fields_schema" :key="f.name" class="flex items-center justify-between px-4 py-2.5 text-sm">
-            <span class="text-gray-900">{{ f.label }}</span>
-            <span class="text-xs text-gray-400">{{ f.type }}</span>
-          </li>
-        </ul>
+        <div class="mt-6 grid gap-6 lg:grid-cols-[1fr_18rem] items-start">
+          <div class="bg-white border border-gray-200 rounded-2xl p-4">
+            <FieldCoordEditor
+              :fields="form.fields_schema"
+              :s3-key="form.pdf_template_s3_key"
+              :font-size-pt="form.font_size"
+              @update:fields="form.fields_schema = $event"
+            />
+          </div>
+
+          <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+            <p class="px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-gray-500 border-b border-gray-100">Campi</p>
+            <ul class="divide-y divide-gray-100 max-h-[32rem] overflow-y-auto">
+              <li v-for="f in form.fields_schema" :key="f._uid" class="flex items-center gap-2 px-3 py-2">
+                <input
+                  v-model="f.label"
+                  type="text"
+                  class="flex-1 min-w-0 rounded-md border-gray-200 text-sm py-1 focus:border-indigo-500 focus:ring-indigo-500"
+                  :aria-label="`Nome del campo ${f.label}`"
+                />
+                <button type="button" class="text-gray-400 hover:text-red-600 text-lg leading-none" title="Togli campo" @click="removeField(f._uid)">×</button>
+              </li>
+            </ul>
+          </div>
+        </div>
 
         <button
           type="button"

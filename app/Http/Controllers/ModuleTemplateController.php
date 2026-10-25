@@ -29,6 +29,12 @@ class ModuleTemplateController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $tenant = $request->user()->tenant;
+        $max = config('moduli.limits.trial.templates');
+        if ($tenant?->isTrial() && ModuleTemplate::count() >= $max) {
+            return back()->with('error', "Nella prova puoi salvare fino a {$max} moduli. Attiva l'abbonamento per caricarne altri.");
+        }
+
         $data = $this->validated($request);
 
         $data['tenant_id'] = auth()->user()->tenant_id;
@@ -145,7 +151,7 @@ class ModuleTemplateController extends Controller
         $data = $request->validate([
             'name'                => ['required', 'string', 'max:120'],
             'pdf_template_s3_key' => ['nullable', 'string', $this->ownedTemplateKey()],
-            'fields_schema'       => ['nullable', 'array'],
+            'fields_schema'       => ['nullable', 'array', 'max:300'],
             'font_size'           => ['nullable', 'integer', 'min:6', 'max:24'],
             'text_baseline_shift' => ['nullable', 'numeric', 'min:-20', 'max:20'],
         ]);
