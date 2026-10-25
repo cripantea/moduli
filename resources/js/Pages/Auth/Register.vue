@@ -191,6 +191,7 @@ const submit = () => {
           <a href="/termini" target="_blank" class="underline hover:text-gray-600">Termini di servizio</a>
           e la
           <a href="https://fusionsoft.it/privacy" target="_blank" rel="noopener" class="underline hover:text-gray-600">Privacy Policy</a>.
+          Ti scriveremo via email e WhatsApp solo per aiutarti a iniziare; puoi chiederci di smettere quando vuoi.
         </p>
 
         <p class="text-center text-sm text-gray-500 mt-4">

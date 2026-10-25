@@ -10,7 +10,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { Head, Link } from '@inertiajs/vue3'
 
 // ── Hero live demo ──────────────────────────────────────────────────────────
-const demo = ref({ nome: 'Marco', cognome: 'Rossi', data: '15/10/2024', servizio: 'Visita di controllo' })
+const demo = ref({ nome: 'Marco', cognome: 'Rossi', data: new Date().toLocaleDateString('it-IT'), servizio: 'Visita di controllo' })
 const demoNomeCognome = computed(() => {
   const n = demo.value.nome.trim() || '___'
   const c = demo.value.cognome.trim() || '___'
@@ -47,7 +47,7 @@ const benefits = [
 const useCases = [
   {
     sector: 'Assicurazioni',
-    desc: 'Agenzie e brokers che compilano polizze, schede cliente e dichiarazioni più volte al giorno.',
+    desc: 'Agenzie e broker che compilano polizze, schede cliente e dichiarazioni più volte al giorno.',
     docs: ['Moduli di polizza', 'Dichiarazioni sinistro', 'Schede cliente', 'Informative privacy'],
     icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z',
   },
@@ -112,7 +112,7 @@ const planFeatures = [
   'Generazione PDF automatica',
   'Anteprima in tempo reale',
   'Archivio documenti',
-  'Più utenti nella stessa organizzazione',
+  'Più colleghi nello stesso account (li aggiungiamo noi)',
   'Accesso da browser, nessuna installazione',
   'Nessun costo di attivazione',
 ]
@@ -139,7 +139,7 @@ const faqs = [
   },
   {
     q: 'Posso utilizzare Fusion Moduli con più collaboratori?',
-    a: "Sì. Più utenti possono lavorare nella stessa organizzazione. Ogni collaboratore accede con le proprie credenziali e vede i moduli dell'azienda.",
+    a: "Sì. Più colleghi possono lavorare nello stesso account, ognuno con le proprie credenziali, e vedono i moduli dell'azienda. Per aggiungerli scrivici con il pulsante Assistenza: lo facciamo noi in giornata.",
   },
   {
     q: 'I miei dati vengono salvati?',
@@ -313,7 +313,7 @@ const faqs = [
                 <div class="w-3 h-3 rounded-full bg-green-400"></div>
               </div>
               <div class="flex-1 mx-3 h-6 bg-gray-100 rounded-md flex items-center justify-center">
-                <span class="text-xs text-gray-400">fusionmoduli.it · Compilazione</span>
+                <span class="text-xs text-gray-400">moduli.fusionsoft.it · Compilazione</span>
               </div>
             </div>
 

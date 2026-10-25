@@ -118,7 +118,7 @@ class ModuleTemplateController extends Controller
 
         $page = max(1, (int) ($request->page ?? 1));
         $cmd = sprintf(
-            '%s -dBATCH -dNOPAUSE -dQUIET -sDEVICE=jpeg -r150 -dFirstPage=%d -dLastPage=%d -sOutputFile=%s %s 2>&1',
+            '%s -dSAFER -dBATCH -dNOPAUSE -dQUIET -sDEVICE=jpeg -r150 -dFirstPage=%d -dLastPage=%d -sOutputFile=%s %s 2>&1',
             escapeshellarg($gs), $page, $page, escapeshellarg($tmpJpg), escapeshellarg($tmpPdf)
         );
 

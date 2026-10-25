@@ -151,7 +151,7 @@ class ModuleTemplateController extends Controller
             }
 
             $cmd = sprintf(
-                '%s -dBATCH -dNOPAUSE -dQUIET -sDEVICE=jpeg -dJPEGQ=88 -r150 -dFirstPage=%d -dLastPage=%d -sOutputFile=%s %s 2>&1',
+                '%s -dSAFER -dBATCH -dNOPAUSE -dQUIET -sDEVICE=jpeg -dJPEGQ=88 -r150 -dFirstPage=%d -dLastPage=%d -sOutputFile=%s %s 2>&1',
                 escapeshellarg($gsBin),
                 $page,
                 $page,

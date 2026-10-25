@@ -221,7 +221,7 @@ class PdfFormFillerService
 
         $outputPath = $inputPath . '_compat.pdf';
         $cmd = sprintf(
-            '%s -dBATCH -dNOPAUSE -dQUIET -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -sOutputFile=%s %s 2>&1',
+            '%s -dSAFER -dBATCH -dNOPAUSE -dQUIET -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -sOutputFile=%s %s 2>&1',
             escapeshellarg($gs), escapeshellarg($outputPath), escapeshellarg($inputPath)
         );
 
