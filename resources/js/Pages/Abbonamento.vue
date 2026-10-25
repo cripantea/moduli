@@ -4,6 +4,8 @@ import { Head, router, usePage } from '@inertiajs/vue3'
 import { computed, ref } from 'vue'
 import { track } from '@/tracking'
 import LaunchPrice from '@/Components/LaunchPrice.vue'
+import PlanHighlight from '@/Components/PlanHighlight.vue'
+import { fairUse, vatNote } from '@/plan'
 
 const props = defineProps<{
   pronto: { id: number; template_name: string; created_at: string } | null
@@ -45,8 +47,8 @@ function checkout() {
         <p class="text-sm font-medium text-gray-500">Moduli</p>
         <LaunchPrice class="mt-1" />
 
+        <PlanHighlight class="mt-5" />
         <ul class="mt-5 space-y-2 text-sm text-gray-700">
-          <li>✓ Moduli e compilazioni illimitati</li>
           <li>✓ L'AI riconosce i campi di ogni nuovo PDF</li>
           <li>✓ Archivio con ricerca e download</li>
           <li>✓ 30 minuti di videochiamata con un tecnico che imposta tutto con te</li>
@@ -72,6 +74,7 @@ function checkout() {
           {{ loading ? 'Apro il pagamento…' : 'Attiva e scarica' }}
         </button>
         <p class="mt-3 text-center text-xs text-gray-500">Pagamento sicuro con Stripe · carta o Apple/Google Pay</p>
+        <p class="mt-2 text-center text-xs text-gray-400">{{ vatNote }} {{ fairUse }}</p>
         <p v-if="flashError" class="mt-3 text-center text-sm text-red-600">{{ flashError }}</p>
       </div>
     </div>

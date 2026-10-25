@@ -9,7 +9,7 @@ const { attiva, offerta, prezzo, scadenza, countdown } = useOffer()
   <div>
     <p>
       <span class="text-5xl font-extrabold text-gray-900">{{ prezzo }} €</span>
-      <span class="text-gray-500"> / mese, IVA inclusa</span>
+      <span class="text-gray-500"> / mese, senza IVA</span>
     </p>
     <div v-if="attiva" class="mt-4 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-900">
       <p><strong>Prezzo di lancio.</strong> Dopo {{ scadenza }} il prezzo diventa {{ offerta.prezzo_pieno }} €/mese. Chi si abbona prima resta a {{ offerta.lancio }} € finché resta abbonato.</p>

@@ -3,6 +3,8 @@ import FusionsoftBadge from '@/Components/FusionsoftBadge.vue'
 import { whatsappUrl } from '@/support'
 import LaunchBanner from '@/Components/LaunchBanner.vue'
 import LaunchPrice from '@/Components/LaunchPrice.vue'
+import PlanHighlight from '@/Components/PlanHighlight.vue'
+import { fairUse, vatNote } from '@/plan'
 import { useOffer } from '@/offer'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { Head, Link } from '@inertiajs/vue3'
@@ -107,8 +109,6 @@ const steps = [
 ]
 
 const planFeatures = [
-  'Modelli illimitati',
-  'Compilazioni illimitate',
   'Generazione PDF automatica',
   'Anteprima in tempo reale',
   'Archivio documenti',
@@ -148,6 +148,14 @@ const faqs = [
   {
     q: "Posso annullare l'abbonamento?",
     a: "Sì, con un clic da \"Abbonamento\" nel menu, senza penali. L'accesso rimane attivo fino alla fine del mese già pagato.",
+  },
+  {
+    q: 'Ricevo la fattura? C’è l’IVA?',
+    a: 'Sì, ricevi la fattura elettronica: al pagamento inserisci ragione sociale, partita IVA e codice destinatario o PEC. Fusionsoft è in regime forfettario, quindi la fattura è senza IVA (art. 1, commi 54-89, L. 190/2014): il prezzo che vedi è quello che paghi.',
+  },
+  {
+    q: 'Quanti moduli posso usare?',
+    a: 'Fino a 100 moduli diversi, e li compili quante volte vuoi. Le compilazioni sono illimitate per l’uso normale della tua attività (fair use).',
   },
   {
     q: 'E se non fa per me?',
@@ -721,6 +729,7 @@ const faqs = [
           Inizia ora
         </Link>
 
+        <PlanHighlight class="mb-5" />
         <ul class="space-y-3">
           <li v-for="f in planFeatures" :key="f" class="flex items-center gap-3 text-sm text-gray-700">
             <span class="w-4 h-4 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
@@ -736,6 +745,8 @@ const faqs = [
       <p class="text-center text-xs text-gray-400 mt-5">
         Soddisfatto o rimborsato: se entro 30 giorni non fa per te, ti restituiamo i soldi.
       </p>
+      <p class="text-center text-xs text-gray-400 mt-2">{{ vatNote }}</p>
+      <p class="text-center text-xs text-gray-400 mt-2 max-w-md mx-auto">{{ fairUse }}</p>
     </div>
   </section>
 

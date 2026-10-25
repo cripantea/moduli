@@ -3,6 +3,8 @@ import { whatsappUrl } from '@/support'
 import { Head, Link } from '@inertiajs/vue3'
 import LaunchBanner from '@/Components/LaunchBanner.vue'
 import LaunchPrice from '@/Components/LaunchPrice.vue'
+import PlanHighlight from '@/Components/PlanHighlight.vue'
+import { fairUse, vatNote } from '@/plan'
 import { useOffer } from '@/offer'
 
 const { attiva: offertaAttiva, prezzo, offerta, countdown } = useOffer()
@@ -16,7 +18,6 @@ const steps = [
 
 const included = [
   '30 minuti di videochiamata con un tecnico',
-  'Moduli e compilazioni illimitati',
   'L’AI che legge ogni nuovo PDF',
   'Archivio di tutte le compilazioni',
   'Assistenza in chat e su WhatsApp',
@@ -25,6 +26,7 @@ const included = [
 const faqs = [
   { q: 'Il tecnico è compreso nel prezzo?', a: 'Sì. Dopo l’attivazione prenoti tu giorno e ora: 30 minuti in videochiamata per impostare i tuoi moduli. Nessun costo in più.' },
   { q: 'Funziona con i miei moduli?', a: 'Sì: carichi il PDF che usi già. Deleghe, denunce, richieste, contratti, schede cliente.' },
+  { q: 'Ricevo la fattura? C’è l’IVA?', a: 'Sì, fattura elettronica: i dati li inserisci al pagamento. Fusionsoft è in regime forfettario, quindi niente IVA: il prezzo che vedi è quello che paghi.' },
   { q: 'E se non fa per me?', a: 'Entro 30 giorni dal primo pagamento ti rimborsiamo tutto. Disdici con un clic quando vuoi.' },
 ]
 </script>
@@ -123,7 +125,8 @@ const faqs = [
         <div class="rounded-2xl bg-white border border-gray-200 p-8">
           <p class="text-sm font-medium text-gray-500">Fusion Moduli</p>
           <LaunchPrice class="mt-1" />
-          <ul class="mt-6 space-y-2.5 text-gray-700">
+          <PlanHighlight class="mt-6" />
+          <ul class="mt-5 space-y-2.5 text-gray-700">
             <li v-for="f in included" :key="f" class="flex gap-3">
               <svg class="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 13l4 4L19 7"/></svg>
               {{ f }}
@@ -133,6 +136,8 @@ const faqs = [
             Inizia ora
           </Link>
           <p class="mt-4 text-center text-sm text-gray-500">Soddisfatto o rimborsato entro 30 giorni · disdici con un clic</p>
+          <p class="mt-3 text-center text-xs text-gray-400">{{ vatNote }}</p>
+          <p class="mt-2 text-center text-xs text-gray-400">{{ fairUse }}</p>
         </div>
       </div>
     </section>

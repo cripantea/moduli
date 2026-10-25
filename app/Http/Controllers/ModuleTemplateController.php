@@ -30,9 +30,12 @@ class ModuleTemplateController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $tenant = $request->user()->tenant;
-        $max = config('moduli.limits.trial.templates');
-        if ($tenant?->isTrial() && ModuleTemplate::count() >= $max) {
-            return back()->with('error', "Nella prova puoi salvare fino a {$max} moduli. Attiva l'abbonamento per caricarne altri.");
+        $trial = (bool) $tenant?->isTrial();
+        $max = config($trial ? 'moduli.limits.trial.templates' : 'moduli.limits.paid.templates');
+        if ($tenant && ModuleTemplate::count() >= $max) {
+            return back()->with('error', $trial
+                ? "Nella prova puoi salvare fino a {$max} moduli. Attiva l'abbonamento per caricarne altri."
+                : "Hai raggiunto {$max} moduli, il massimo dell'abbonamento. Scrivici con Assistenza se te ne servono di più.");
         }
 
         $data = $this->validated($request);

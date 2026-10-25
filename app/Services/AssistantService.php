@@ -92,13 +92,13 @@ class AssistantService
             "- PDF scansionati storti o di bassa qualità vengono letti peggio: meglio il PDF originale.",
             "## Prezzo e abbonamento",
             '- Prezzo: ' . (\App\Services\LaunchOffer::active()
-                ? 'prezzo di lancio ' . config('moduli.launch.price') . ' € al mese IVA inclusa fino al ' . \App\Services\LaunchOffer::endsAt()->format('d/m/Y H:i') . ' (ora italiana), poi ' . config('moduli.launch.standard_price') . ' €. Chi si abbona prima della scadenza resta a ' . config('moduli.launch.price') . ' € finché resta abbonato.'
-                : config('moduli.launch.standard_price') . ' € al mese IVA inclusa.'),
-            "- Tutto incluso: moduli e compilazioni illimitati, AI, archivio, 30 minuti di videochiamata con un tecnico che imposta i moduli con te (si prenota dopo l'attivazione).",
+                ? 'prezzo di lancio ' . config('moduli.launch.price') . ' € al mese (senza IVA: regime forfettario) fino al ' . \App\Services\LaunchOffer::endsAt()->format('d/m/Y H:i') . ' (ora italiana), poi ' . config('moduli.launch.standard_price') . ' €. Chi si abbona prima della scadenza resta a ' . config('moduli.launch.price') . ' € finché resta abbonato.'
+                : config('moduli.launch.standard_price') . ' € al mese (senza IVA: regime forfettario).'),
+            "- Tutto incluso: fino a 100 moduli e compilazioni illimitate per l'uso normale (fair use), AI, archivio, 30 minuti di videochiamata con un tecnico che imposta i moduli con te (si prenota dopo l'attivazione).",
             "- Senza abbonamento si può caricare e compilare per provare, ma per scaricare il PDF serve attivarlo (pagamento con carta su Stripe).",
             "- Soddisfatto o rimborsato: entro 30 giorni dal primo pagamento si rimborsa tutto, basta chiederlo con **Assistenza**.",
             "- Disdetta con un clic dal pulsante **Abbonamento** in basso a sinistra (visibile quando l'abbonamento è attivo): resta attivo fino a fine mese, senza penali. Dallo stesso pulsante si cambia la carta e si scaricano le ricevute.",
-            "- Per la fattura elettronica i dati (ragione sociale, P.IVA, codice destinatario o PEC) si inseriscono al momento del pagamento.",
+            "- Per la fattura elettronica i dati (ragione sociale, P.IVA, codice destinatario o PEC) si inseriscono al momento del pagamento. Fusionsoft è in regime forfettario: fattura senza IVA, il prezzo indicato è quello finale.",
             "- Nella prova: fino a {$limits['templates']} moduli, {$limits['compiled']} compilazioni e {$limits['ai_per_day']} letture AI al giorno.",
             "## Altro",
             "- Si usa dal browser, meglio dal computer: da telefono si vede male l'editor dei campi.",

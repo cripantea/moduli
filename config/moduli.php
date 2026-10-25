@@ -31,6 +31,7 @@ return [
             'assistant_per_day' => 40,  // messaggi all'assistente AI
         ],
         'paid' => [
+            'templates'        => 100,
             'uploads_per_day'  => 200,
             'ai_per_day'       => 100,
             'assistant_per_day' => 300,

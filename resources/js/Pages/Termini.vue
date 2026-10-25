@@ -61,7 +61,7 @@ const aggiornati = '25 ottobre 2026'
           per scaricare i documenti compilati serve l'abbonamento.
         </p>
         <p>
-          L'abbonamento costa <strong>49 € al mese IVA inclusa</strong>. Fino al 29 ottobre 2026 alle 23:59 (ora italiana) vale il
+          L'abbonamento costa <strong>49 € al mese</strong>. Fino al 29 ottobre 2026 alle 23:59 (ora italiana) vale il
           <strong>prezzo di lancio di 29 € al mese</strong>: chi si abbona entro quella data paga 29 € al mese per tutto il tempo in cui
           il suo abbonamento resta attivo. Si paga in anticipo con carta tramite Stripe e si rinnova automaticamente ogni mese finché
           non lo disdici. Eventuali altre variazioni di prezzo ti saranno comunicate con almeno 30 giorni di anticipo e varranno dal
@@ -69,12 +69,23 @@ const aggiornati = '25 ottobre 2026'
         </p>
         <p>
           Per ricevere la fattura elettronica inserisci al pagamento i tuoi dati di fatturazione (ragione sociale, partita IVA,
-          codice destinatario o PEC).
+          codice destinatario o PEC). {{ azienda.name }} opera in <strong>regime forfettario</strong>: le fatture sono emesse senza
+          applicazione dell'IVA ai sensi dell'art. 1, commi 54-89, della Legge 190/2014. Il prezzo indicato è quindi il prezzo finale.
         </p>
       </section>
 
       <section class="mt-8 space-y-3">
-        <h2 class="text-lg font-semibold text-gray-900">5. Soddisfatto o rimborsato</h2>
+        <h2 class="text-lg font-semibold text-gray-900">5. Cosa comprende</h2>
+        <p>
+          L'abbonamento comprende fino a <strong>100 moduli</strong> (template) e <strong>compilazioni illimitate</strong> per l'uso
+          normale della tua attività (fair use), l'archivio delle compilazioni, l'assistenza e 30 minuti di videochiamata con un tecnico.
+          Un uso anomalo (ad esempio compilazioni automatiche, rivendita o uso per conto di altre aziende) non rientra nel fair use:
+          in quel caso ti contattiamo per trovare insieme la soluzione adatta, prima di limitare o sospendere il servizio.
+        </p>
+      </section>
+
+      <section class="mt-8 space-y-3">
+        <h2 class="text-lg font-semibold text-gray-900">6. Soddisfatto o rimborsato</h2>
         <p>
           Se entro <strong>30 giorni</strong> dal primo pagamento il servizio non fa per te, chiedi il rimborso con il pulsante
           <strong>Assistenza</strong>: ti restituiamo l'intero importo pagato, senza dover dare spiegazioni, e l'abbonamento viene chiuso.
@@ -83,7 +94,7 @@ const aggiornati = '25 ottobre 2026'
       </section>
 
       <section class="mt-8 space-y-3">
-        <h2 class="text-lg font-semibold text-gray-900">6. Disdetta</h2>
+        <h2 class="text-lg font-semibold text-gray-900">7. Disdetta</h2>
         <p>
           Puoi disdire in qualsiasi momento, con un clic, dal pulsante <strong>Abbonamento</strong> nell'app. L'abbonamento resta attivo
           fino alla fine del mese già pagato e non viene più rinnovato; non ci sono penali. Dopo la scadenza puoi ancora accedere
@@ -96,7 +107,7 @@ const aggiornati = '25 ottobre 2026'
       </section>
 
       <section class="mt-8 space-y-3">
-        <h2 class="text-lg font-semibold text-gray-900">7. Uso corretto</h2>
+        <h2 class="text-lg font-semibold text-gray-900">8. Uso corretto</h2>
         <p>
           Non puoi usare il servizio per attività illecite, per caricare contenuti di cui non hai diritto, per tentare di accedere
           a dati di altri clienti, per sovraccaricare il sistema o per aggirarne i limiti. In questi casi possiamo sospendere l'account.
@@ -104,7 +115,7 @@ const aggiornati = '25 ottobre 2026'
       </section>
 
       <section class="mt-8 space-y-3">
-        <h2 class="text-lg font-semibold text-gray-900">8. I tuoi dati e i tuoi documenti</h2>
+        <h2 class="text-lg font-semibold text-gray-900">9. I tuoi dati e i tuoi documenti</h2>
         <p>
           I moduli e i documenti che carichi restano tuoi e sono visibili solo agli utenti della tua azienda. Li usiamo
           esclusivamente per fornirti il servizio: per il riconoscimento dei campi e per l'assistente vengono elaborati da fornitori
@@ -119,7 +130,7 @@ const aggiornati = '25 ottobre 2026'
       </section>
 
       <section class="mt-8 space-y-3">
-        <h2 class="text-lg font-semibold text-gray-900">9. Disponibilità e responsabilità</h2>
+        <h2 class="text-lg font-semibold text-gray-900">10. Disponibilità e responsabilità</h2>
         <p>
           Facciamo il possibile perché il servizio sia sempre disponibile e i dati siano al sicuro, ma possono esserci interruzioni
           per manutenzione o cause non dipendenti da noi. Nei limiti consentiti dalla legge, la nostra responsabilità verso un cliente
@@ -129,7 +140,7 @@ const aggiornati = '25 ottobre 2026'
       </section>
 
       <section class="mt-8 space-y-3">
-        <h2 class="text-lg font-semibold text-gray-900">10. Modifiche e legge applicabile</h2>
+        <h2 class="text-lg font-semibold text-gray-900">11. Modifiche e legge applicabile</h2>
         <p>
           Possiamo aggiornare questi termini: le modifiche importanti ti saranno comunicate in anticipo. Si applica la legge italiana.
           Per i clienti professionali è competente il foro della sede di Fusionsoft; per i consumatori quello del loro luogo di residenza.
