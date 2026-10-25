@@ -44,13 +44,6 @@ return [
         'price_standard' => env('STRIPE_PRICE_ID_STANDARD'),   // 49 €/mese, dopo il lancio
     ],
 
-    // Assistente AI dentro l'app (stessa chiave di Fusion CRM).
-    'deepseek' => [
-        'key'      => env('DEEPSEEK_API_KEY'),
-        'model'    => env('DEEPSEEK_MODEL', 'deepseek-chat'),
-        'base_url' => env('DEEPSEEK_BASE_URL', 'https://api.deepseek.com'),
-    ],
-
     // Fusion CRM: registrazioni e pagamenti di Moduli per la sequenza di email (endpoint webhook del CRM).
     'fusion_crm' => [
         'webhook_url'   => env('FUSION_CRM_WEBHOOK_URL'),
@@ -72,7 +65,7 @@ return [
     ],
 
     // DeepSeek tramite il suo endpoint compatibile con l'API Anthropic.
-    // deepseek-flash accetta immagini (serve per le pagine annotate).
+    // deepseek-flash accetta immagini (serve per le pagine annotate). Lo usa anche l'assistente in chat.
     'deepseek' => [
         'key'      => env('DEEPSEEK_API_KEY'),
         'model'    => env('DEEPSEEK_MODEL', 'deepseek-flash'),

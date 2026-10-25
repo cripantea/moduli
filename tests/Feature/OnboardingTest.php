@@ -267,7 +267,7 @@ test('a customer can open a support ticket that only the superadmin sees', funct
 test('the AI assistant answers and the superadmin can read the conversation', function () {
     config(['services.deepseek.key' => 'test-key']);
     \Illuminate\Support\Facades\Http::fake([
-        'api.deepseek.com/*' => \Illuminate\Support\Facades\Http::response(['choices' => [['message' => ['content' => 'Vai in **Template** e trascina la linea.']]]]),
+        'api.deepseek.com/*' => \Illuminate\Support\Facades\Http::response(['content' => [['type' => 'text', 'text' => 'Vai in **Template** e trascina la linea.']]]),
     ]);
     $user = trialUser();
 

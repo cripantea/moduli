@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Assistente AI dentro Moduli (come il "?" di Fusion CRM): DeepSeek, API compatibile OpenAI.
+ * Assistente AI dentro Moduli (come il "?" di Fusion CRM): DeepSeek, stessa configurazione dell'estrazione dei campi.
  * Risponde solo su come usare Moduli e rimanda all'assistenza umana quando non sa.
  */
 class AssistantService
@@ -26,19 +26,21 @@ class AssistantService
             return ['ok' => false, 'error' => 'Assistente non configurato'];
         }
 
+        // Stessa chiave, endpoint e modello dell'estrazione dei campi (API compatibile Anthropic).
         $model = config('services.deepseek.model');
 
         try {
-            $response = Http::withToken(config('services.deepseek.key'))
+            $response = Http::withHeaders([
+                'x-api-key'         => config('services.deepseek.key'),
+                'anthropic-version' => '2023-06-01',
+            ])
                 ->timeout(60)
-                ->post(rtrim(config('services.deepseek.base_url'), '/') . '/chat/completions', [
+                ->post(rtrim(config('services.deepseek.base_url'), '/') . '/v1/messages', [
                     'model'       => $model,
                     'max_tokens'  => 900,
                     'temperature' => 0.3,
-                    'messages'    => [
-                        ['role' => 'system', 'content' => $this->systemPrompt($context)],
-                        ...$turns,
-                    ],
+                    'system'      => $this->systemPrompt($context),
+                    'messages'    => $turns,
                 ]);
         } catch (\Throwable $e) {
             Log::warning('Assistente: DeepSeek non raggiungibile', ['error' => $e->getMessage()]);
@@ -46,7 +48,10 @@ class AssistantService
             return ['ok' => false, 'error' => 'DeepSeek non raggiungibile'];
         }
 
-        $text = trim((string) $response->json('choices.0.message.content'));
+        $text = trim(collect($response->json('content') ?? [])
+            ->where('type', 'text')
+            ->pluck('text')
+            ->implode(''));
         if ($response->failed() || $text === '') {
             Log::warning('Assistente: risposta DeepSeek non valida', ['status' => $response->status()]);
 
