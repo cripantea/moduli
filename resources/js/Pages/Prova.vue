@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import DemoVideo from '@/Components/DemoVideo.vue'
 import { whatsappUrl } from '@/support'
 import { Head, Link } from '@inertiajs/vue3'
 import LaunchBanner from '@/Components/LaunchBanner.vue'
@@ -7,7 +8,7 @@ import PlanHighlight from '@/Components/PlanHighlight.vue'
 import { fairUse, vatNote } from '@/plan'
 import { useOffer } from '@/offer'
 
-const { attiva: offertaAttiva, prezzo, offerta, countdown } = useOffer()
+const { attiva: offertaAttiva, prezzo, offerta } = useOffer()
 
 // Landing dedicata alle campagne Meta: una promessa, un pulsante, niente menu.
 const steps = [
@@ -73,43 +74,16 @@ const faqs = [
             Inizia ora
           </Link>
           <span class="text-sm text-gray-500">
-            <template v-if="offertaAttiva"><strong class="text-gray-900">{{ prezzo }} €/mese, prezzo di lancio</strong> (poi {{ offerta.prezzo_pieno }} €) · scade tra <span class="tabular-nums">{{ countdown }}</span></template>
+            <template v-if="offertaAttiva"><strong class="text-gray-900">{{ prezzo }} €/mese</strong> (poi {{ offerta.prezzo_pieno }} €) · tecnico incluso · rimborso 30 giorni</template>
             <template v-else>{{ prezzo }} €/mese · tecnico incluso · rimborso entro 30 giorni</template>
           </span>
         </div>
       </div>
-      <video
-        class="w-full rounded-2xl border border-gray-200 bg-[#f5f5f7]"
-        src="/videos/fusion-moduli.mp4"
-        poster="/videos/fusion-moduli-poster.jpg"
-        width="1920"
-        height="1080"
-        autoplay
-        muted
-        loop
-        playsinline
-        preload="metadata"
-        aria-label="Video: carichi il PDF, l'AI trova i campi, lo compili in pochi secondi e lo ritrovi in archivio"
-      />
-    </section>
-
-    <!-- Il tecnico -->
-    <section class="bg-indigo-600 text-white">
-      <div class="max-w-6xl mx-auto px-4 sm:px-6 py-14 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
-        <div>
-          <h2 class="text-2xl sm:text-3xl font-bold">Non sei solo: hai sempre 30 minuti con un tecnico.</h2>
-          <p class="mt-3 text-indigo-100 text-lg max-w-2xl">
-            Dopo l’attivazione scegli tu giorno e ora. In videochiamata carichiamo insieme i tuoi moduli e li lasciamo pronti per il lavoro di ogni giorno.
-          </p>
-        </div>
-        <Link href="/register" class="inline-flex justify-center items-center px-7 py-3.5 bg-white text-indigo-700 font-semibold rounded-xl hover:bg-indigo-50 transition-colors">
-          Inizia ora
-        </Link>
-      </div>
+      <DemoVideo />
     </section>
 
     <!-- Come funziona -->
-    <section class="max-w-6xl mx-auto px-4 sm:px-6 py-16 lg:py-20">
+    <section class="max-w-6xl mx-auto px-4 sm:px-6 py-12 lg:py-20">
       <h2 class="text-3xl font-bold text-center">Come funziona</h2>
       <ol class="mt-10 grid gap-6 md:grid-cols-3">
         <li v-for="s in steps" :key="s.title" class="rounded-2xl bg-gray-50 p-6">
@@ -121,7 +95,7 @@ const faqs = [
 
     <!-- Prezzo -->
     <section class="bg-gray-50">
-      <div class="max-w-xl mx-auto px-4 sm:px-6 py-16 lg:py-20">
+      <div class="max-w-xl mx-auto px-4 sm:px-6 py-12 lg:py-20">
         <div class="rounded-2xl bg-white border border-gray-200 p-8">
           <p class="text-sm font-medium text-gray-500">Fusion Moduli</p>
           <LaunchPrice class="mt-1" />
@@ -143,7 +117,7 @@ const faqs = [
     </section>
 
     <!-- Domande -->
-    <section class="max-w-3xl mx-auto px-4 sm:px-6 py-16 lg:py-20">
+    <section class="max-w-3xl mx-auto px-4 sm:px-6 py-12 lg:py-20">
       <h2 class="text-3xl font-bold text-center">Domande</h2>
       <dl class="mt-10 space-y-8">
         <div v-for="f in faqs" :key="f.q">

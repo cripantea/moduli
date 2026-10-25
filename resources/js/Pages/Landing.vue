@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import DemoVideo from '@/Components/DemoVideo.vue'
 import FusionsoftBadge from '@/Components/FusionsoftBadge.vue'
 import { whatsappUrl } from '@/support'
 import LaunchBanner from '@/Components/LaunchBanner.vue'
@@ -35,14 +36,6 @@ const scrollTo = (id: string) => {
 const openFaq = ref<number | null>(null)
 const toggleFaq = (i: number) => { openFaq.value = openFaq.value === i ? null : i }
 
-const benefits = [
-  { title: 'Riduci gli errori', desc: 'I campi guidati eliminano dati mancanti, valori inconsistenti e correzioni manuali sul documento.', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
-  { title: 'Compila più velocemente', desc: "L'interfaccia porta l'operatore da un campo all'altro senza dover leggere e interpretare il documento.", icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
-  { title: 'Documenti uniformi', desc: 'Ogni documento esce con lo stesso formato e la stessa qualità, indipendentemente da chi lo ha compilato.', icon: 'M4 6h16M4 10h16M4 14h10M4 18h7' },
-  { title: 'Onboarding più semplice', desc: 'Un nuovo collaboratore può compilare documenti correttamente fin dal primo giorno, senza formazione specifica.', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z' },
-  { title: 'Tutta la modulistica centralizzata', desc: 'Basta cartelle email, versioni diverse e moduli trovati per caso. Un unico posto per tutti i modelli.', icon: 'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z' },
-  { title: 'Archivio sempre disponibile', desc: 'I documenti compilati vengono salvati automaticamente e sono scaricabili in qualsiasi momento.', icon: 'M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4' },
-]
 
 const useCases = [
   {
@@ -71,14 +64,6 @@ const useCases = [
   },
 ]
 
-const templates = [
-  { name: 'Consenso informato', cat: 'Sanitario', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
-  { name: 'Scheda cliente', cat: 'Commerciale', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
-  { name: 'Verbale di riunione', cat: 'Interno', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' },
-  { name: 'Modulo assicurativo', cat: 'Assicurazioni', icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' },
-  { name: 'Dichiarazione', cat: 'Amministrativo', icon: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' },
-  { name: 'Contratto standard', cat: 'Legale', icon: 'M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z' },
-]
 
 const problemItems = [
   { icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', title: 'Adobe o il browser, campo per campo', desc: 'Clic, scrivi, il testo non entra, rimpicciolisci, riprovi. Per un modulo che compili uguale ogni giorno.' },
@@ -134,10 +119,6 @@ const faqs = [
     a: 'Sì. Ogni modello può essere aggiornato in qualsiasi momento: puoi aggiungere, rimuovere o modificare i campi senza dover ricaricare il documento.',
   },
   {
-    q: 'Come viene generato il documento finale?',
-    a: "Il sistema sovrappone i dati inseriti al documento originale e genera un file PDF completo, leggibile e pronto all'uso.",
-  },
-  {
     q: 'Posso utilizzare Fusion Moduli con più collaboratori?',
     a: "Sì. Più colleghi possono lavorare nello stesso account, ognuno con le proprie credenziali, e vedono i moduli dell'azienda. Per aggiungerli scrivici con il pulsante Assistenza: lo facciamo noi in giornata.",
   },
@@ -160,10 +141,6 @@ const faqs = [
   {
     q: 'E se non fa per me?',
     a: 'Entro 30 giorni dal primo pagamento ti rimborsiamo tutto, senza domande. Basta scriverci.',
-  },
-  {
-    q: 'Serve installare qualcosa?',
-    a: 'No. Fusion Moduli funziona completamente nel browser. Nessun software, nessun plugin, nessuna installazione.',
   },
 ]
 </script>
@@ -207,7 +184,7 @@ const faqs = [
         <!-- Desktop nav links -->
         <div class="hidden md:flex items-center gap-7">
           <button @click="scrollTo('come-funziona')" class="text-sm text-gray-500 hover:text-gray-900 transition-colors">Come funziona</button>
-          <button @click="scrollTo('funzionalita')" class="text-sm text-gray-500 hover:text-gray-900 transition-colors">Funzionalità</button>
+          <button @click="scrollTo('video')" class="text-sm text-gray-500 hover:text-gray-900 transition-colors">Video</button>
           <button @click="scrollTo('prezzi')" class="text-sm text-gray-500 hover:text-gray-900 transition-colors">Prezzi</button>
           <button @click="scrollTo('faq')" class="text-sm text-gray-500 hover:text-gray-900 transition-colors">FAQ</button>
         </div>
@@ -241,7 +218,7 @@ const faqs = [
     <!-- Mobile menu -->
     <div v-if="menuOpen" class="md:hidden border-t border-gray-100 bg-white px-4 py-4 space-y-1">
       <button @click="scrollTo('come-funziona')" class="block w-full text-left px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg">Come funziona</button>
-      <button @click="scrollTo('funzionalita')" class="block w-full text-left px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg">Funzionalità</button>
+      <button @click="scrollTo('video')" class="block w-full text-left px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg">Video</button>
       <button @click="scrollTo('prezzi')" class="block w-full text-left px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg">Prezzi</button>
       <button @click="scrollTo('faq')" class="block w-full text-left px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg">FAQ</button>
       <div class="pt-3 border-t border-gray-100 flex flex-col gap-2">
@@ -301,8 +278,8 @@ const faqs = [
           </p>
         </div>
 
-        <!-- Right: interactive product demo -->
-        <div class="mt-12 lg:mt-0">
+        <!-- Right: interactive product demo (solo desktop: da telefono c'è il video subito sotto) -->
+        <div class="hidden lg:block mt-12 lg:mt-0">
           <!-- App chrome -->
           <div class="rounded-2xl border border-gray-200 shadow-2xl shadow-gray-200/60 overflow-hidden bg-white">
             <!-- Title bar -->
@@ -418,19 +395,7 @@ const faqs = [
         <h2 class="text-3xl sm:text-4xl font-bold text-gray-900">Guarda come funziona in 20 secondi.</h2>
         <p class="mt-3 text-lg text-gray-500">Carichi il PDF una volta, l’AI trova i campi, lo compili e lo ritrovi in archivio.</p>
       </div>
-      <video
-        class="w-full rounded-2xl border border-gray-200 bg-[#f5f5f7]"
-        src="/videos/fusion-moduli.mp4"
-        poster="/videos/fusion-moduli-poster.jpg"
-        width="1920"
-        height="1080"
-        autoplay
-        muted
-        loop
-        playsinline
-        preload="metadata"
-        aria-label="Video: con Fusion Moduli carichi il PDF, l'AI trova i campi, lo compili in pochi secondi e lo ritrovi in archivio"
-      />
+      <DemoVideo />
     </div>
   </section>
 
@@ -499,162 +464,6 @@ const faqs = [
             <svg class="w-8 h-8 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
             </svg>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ════════════════════════════════════════════════════════════
-       ANTEPRIMA LIVE (feature callout)
-  ════════════════════════════════════════════════════════════ -->
-  <section id="funzionalita" class="py-20 lg:py-28 bg-indigo-50/60">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="lg:grid lg:grid-cols-2 lg:gap-16 lg:items-center">
-
-        <!-- Left: explanation -->
-        <div>
-          <p class="text-indigo-600 text-sm font-semibold uppercase tracking-widest mb-3">Anteprima in tempo reale</p>
-          <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-5">
-            Vedi il documento mentre lo compili.
-          </h2>
-          <p class="text-lg text-gray-600 mb-8 leading-relaxed">
-            Ogni dato inserito appare immediatamente nel documento finale. L'operatore vede
-            l'esatto risultato prima ancora di generare il PDF.
-          </p>
-          <ul class="space-y-4">
-            <li v-for="item in previewPoints" :key="item" class="flex items-start gap-3">
-              <span class="mt-0.5 shrink-0 w-5 h-5 rounded-full bg-indigo-600 flex items-center justify-center">
-                <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-                </svg>
-              </span>
-              <span class="text-gray-700 text-sm">{{ item }}</span>
-            </li>
-          </ul>
-        </div>
-
-        <!-- Right: mini demo -->
-        <div class="mt-10 lg:mt-0">
-          <div class="rounded-2xl border border-indigo-100 shadow-xl bg-white overflow-hidden">
-            <div class="bg-gray-50 border-b border-gray-100 px-4 py-3 flex items-center gap-3">
-              <div class="flex gap-1.5">
-                <div class="w-2.5 h-2.5 rounded-full bg-red-400"></div>
-                <div class="w-2.5 h-2.5 rounded-full bg-yellow-400"></div>
-                <div class="w-2.5 h-2.5 rounded-full bg-green-400"></div>
-              </div>
-              <span class="text-xs text-gray-400 font-medium">Scheda cliente — in compilazione</span>
-            </div>
-            <div class="grid grid-cols-2 divide-x divide-gray-100">
-              <div class="p-4 space-y-3">
-                <div class="h-3 bg-gray-100 rounded w-16 mb-1"></div>
-                <div class="h-8 bg-indigo-50 border border-indigo-200 rounded-md flex items-center px-3">
-                  <span class="text-xs text-indigo-700 font-medium">Bianchi Costruzioni Srl</span>
-                </div>
-                <div class="h-3 bg-gray-100 rounded w-12 mb-1"></div>
-                <div class="h-8 bg-gray-50 border border-gray-200 rounded-md flex items-center px-3">
-                  <span class="text-xs text-gray-400">Partita IVA…</span>
-                </div>
-                <div class="h-3 bg-gray-100 rounded w-20 mb-1"></div>
-                <div class="h-8 bg-indigo-50 border border-indigo-200 rounded-md flex items-center px-3">
-                  <span class="text-xs text-indigo-700 font-medium">Milano, Via Roma 12</span>
-                </div>
-                <div class="mt-3 h-7 bg-indigo-600 rounded-md flex items-center justify-center">
-                  <span class="text-xs text-white font-semibold">Genera PDF</span>
-                </div>
-              </div>
-              <div class="p-4 bg-gray-50/60">
-                <div class="bg-white rounded-lg border border-gray-200 p-3 text-xs shadow-sm">
-                  <div class="text-center mb-2">
-                    <div class="h-2 bg-gray-800 rounded w-24 mx-auto mb-1"></div>
-                    <div class="h-1.5 bg-gray-300 rounded w-16 mx-auto"></div>
-                  </div>
-                  <div class="border-t border-gray-100 pt-2 space-y-1.5">
-                    <div class="flex gap-1.5 items-baseline">
-                      <span class="text-gray-400 text-[10px] shrink-0">Cliente:</span>
-                      <span class="text-indigo-700 font-semibold text-[10px]">Bianchi Costruzioni Srl</span>
-                    </div>
-                    <div class="flex gap-1.5 items-baseline">
-                      <span class="text-gray-400 text-[10px] shrink-0">P.IVA:</span>
-                      <span class="text-gray-300 text-[10px]">—</span>
-                    </div>
-                    <div class="flex gap-1.5 items-baseline">
-                      <span class="text-gray-400 text-[10px] shrink-0">Sede:</span>
-                      <span class="text-indigo-700 font-semibold text-[10px]">Milano, Via Roma 12</span>
-                    </div>
-                    <div class="mt-2 space-y-1">
-                      <div class="h-1.5 bg-gray-100 rounded w-full"></div>
-                      <div class="h-1.5 bg-gray-100 rounded w-3/4"></div>
-                      <div class="h-1.5 bg-gray-100 rounded w-5/6"></div>
-                    </div>
-                  </div>
-                </div>
-                <p class="mt-1.5 text-center text-[9px] text-indigo-400 font-medium">● aggiornamento automatico</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- ════════════════════════════════════════════════════════════
-       TEMPLATE
-  ════════════════════════════════════════════════════════════ -->
-  <section class="py-20 lg:py-28 bg-white">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center mb-12">
-        <p class="text-indigo-600 text-sm font-semibold uppercase tracking-widest mb-3">Modulistica</p>
-        <h2 class="text-3xl sm:text-4xl font-bold text-gray-900">Tutti i tuoi modelli in un unico posto.</h2>
-        <p class="mt-4 text-gray-500 text-lg max-w-xl mx-auto">
-          Ogni azienda può configurare e gestire i propri documenti. Aggiungi un modello e
-          rendilo disponibile a tutti i collaboratori in pochi minuti.
-        </p>
-      </div>
-
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-        <div v-for="(tpl, i) in templates" :key="i"
-          class="group p-5 rounded-xl border border-gray-200 hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer bg-white"
-        >
-          <div class="w-9 h-9 rounded-lg bg-indigo-50 group-hover:bg-indigo-100 transition-colors flex items-center justify-center mb-3">
-            <svg class="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" :d="tpl.icon"/>
-            </svg>
-          </div>
-          <p class="font-semibold text-gray-900 text-sm leading-snug">{{ tpl.name }}</p>
-          <p class="text-xs text-gray-400 mt-0.5">{{ tpl.cat }}</p>
-        </div>
-      </div>
-
-      <p class="mt-8 text-center text-sm text-gray-500">
-        E molti altri — ogni organizzazione può creare modelli personalizzati per le proprie procedure.
-      </p>
-    </div>
-  </section>
-
-  <!-- ════════════════════════════════════════════════════════════
-       BENEFICI
-  ════════════════════════════════════════════════════════════ -->
-  <section class="py-20 lg:py-28 bg-gray-50">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center mb-14">
-        <p class="text-indigo-600 text-sm font-semibold uppercase tracking-widest mb-3">Vantaggi concreti</p>
-        <h2 class="text-3xl sm:text-4xl font-bold text-gray-900">Meno errori. Più velocità. Più controllo.</h2>
-      </div>
-
-      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div v-for="b in benefits" :key="b.title"
-          class="flex gap-4 p-5 bg-white rounded-xl border border-gray-200"
-        >
-          <div class="shrink-0 w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center">
-            <svg class="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" :d="b.icon"/>
-            </svg>
-          </div>
-          <div>
-            <h3 class="font-semibold text-gray-900 text-sm mb-1">{{ b.title }}</h3>
-            <p class="text-sm text-gray-500">{{ b.desc }}</p>
           </div>
         </div>
       </div>
@@ -839,7 +648,7 @@ const faqs = [
           <p class="text-xs font-semibold uppercase tracking-widest text-gray-600 mb-4">Prodotto</p>
           <ul class="space-y-2.5 text-sm">
             <li><button @click="scrollTo('come-funziona')" class="hover:text-white transition-colors">Come funziona</button></li>
-            <li><button @click="scrollTo('funzionalita')" class="hover:text-white transition-colors">Funzionalità</button></li>
+            <li><button @click="scrollTo('video')" class="hover:text-white transition-colors">Video</button></li>
             <li><button @click="scrollTo('prezzi')" class="hover:text-white transition-colors">Prezzi</button></li>
             <li><button @click="scrollTo('faq')" class="hover:text-white transition-colors">FAQ</button></li>
           </ul>
