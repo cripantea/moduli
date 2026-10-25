@@ -270,7 +270,16 @@ const faqs = [
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
               </svg>
             </Link>
-
+            <button
+              @click="scrollTo('video')"
+              class="inline-flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 hover:border-gray-300 text-gray-700 font-semibold rounded-lg transition-colors text-sm hover:bg-gray-50"
+            >
+              <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Guarda come funziona
+            </button>
           </div>
 
           <p class="mt-4 text-xs text-gray-400">29 €/mese · Disdici quando vuoi · Rimborso entro 30 giorni</p>
@@ -384,7 +393,30 @@ const faqs = [
     </div>
   </section>
 
-  <!-- Sezione video demo: da rimettere quando c'è la registrazione vera (vedi git history) -->
+  <!-- ════════════════════════════════════════════════════════════
+       VIDEO: come funziona in 20 secondi
+  ════════════════════════════════════════════════════════════ -->
+  <section id="video" class="py-20 lg:py-28 bg-[#f5f5f7]">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-10">
+        <h2 class="text-3xl sm:text-4xl font-bold text-gray-900">Guarda come funziona in 20 secondi.</h2>
+        <p class="mt-3 text-lg text-gray-500">Carichi il PDF una volta, l’AI trova i campi, lo compili e lo ritrovi in archivio.</p>
+      </div>
+      <video
+        class="w-full rounded-2xl border border-gray-200 bg-[#f5f5f7]"
+        src="/videos/fusion-moduli.mp4"
+        poster="/videos/fusion-moduli-poster.jpg"
+        width="1920"
+        height="1080"
+        autoplay
+        muted
+        loop
+        playsinline
+        preload="metadata"
+        aria-label="Video: con Fusion Moduli carichi il PDF, l'AI trova i campi, lo compili in pochi secondi e lo ritrovi in archivio"
+      />
+    </div>
+  </section>
 
   <!-- ════════════════════════════════════════════════════════════
        PROBLEMA
