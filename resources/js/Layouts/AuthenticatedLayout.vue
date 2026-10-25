@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import SupportTicketButton from '@/Components/SupportTicketButton.vue'
+import AssistantWidget from '@/Components/AssistantWidget.vue'
 import { computed, ref } from 'vue'
 import { Link, usePage, router } from '@inertiajs/vue3'
 import type { PageProps } from '@/types'
@@ -162,8 +164,9 @@ const initials = computed(() =>
 
     <!-- ── Main ──────────────────────────────────────────── -->
     <div class="flex-1 flex flex-col min-w-0">
-      <header v-if="$slots.header" class="h-14 bg-white border-b border-gray-100 flex items-center px-6">
-        <slot name="header"/>
+      <header class="h-14 bg-white border-b border-gray-100 flex items-center justify-between gap-4 px-6">
+        <div class="min-w-0"><slot name="header"/></div>
+        <SupportTicketButton />
       </header>
 
       <Transition
@@ -188,6 +191,8 @@ const initials = computed(() =>
       <main class="flex-1 p-6">
         <slot/>
       </main>
+
+      <AssistantWidget />
     </div>
 
   </div>

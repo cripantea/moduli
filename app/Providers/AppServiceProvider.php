@@ -58,6 +58,17 @@ class AppServiceProvider extends ServiceProvider
             ];
         });
 
+        // Assistente AI (DeepSeek): messaggi per utente e per azienda.
+        RateLimiter::for('assistant', function (Request $request) use ($limits, $tenantKey, $isTrial) {
+            $tooMany = fn () => response()->json(['reply' => "Hai scritto molti messaggi di fila. Per continuare apri una richiesta con il pulsante **Assistenza** o scrivici su WhatsApp."], 429);
+
+            return [
+                Limit::perMinute(8)->by('assistant-min:' . $request->user()->id)->response($tooMany),
+                Limit::perDay($isTrial($request) ? $limits['trial']['assistant_per_day'] : $limits['paid']['assistant_per_day'])
+                    ->by('assistant-day:' . $tenantKey($request))->response($tooMany),
+            ];
+        });
+
         // Registrazioni: contro la creazione automatica di account.
         RateLimiter::for('register', function (Request $request) use ($limits) {
             $tooMany = fn () => back()->withErrors(['email' => 'Troppe registrazioni in poco tempo. Riprova più tardi.']);

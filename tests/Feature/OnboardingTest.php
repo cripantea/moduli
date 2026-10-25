@@ -247,3 +247,49 @@ test('registrations from the same address are throttled', function () {
 
     expect(\App\Models\User::where('email', 'extra@example.com')->exists())->toBeFalse();
 });
+
+test('a customer can open a support ticket that only the superadmin sees', function () {
+    $user = trialUser();
+
+    $this->actingAs($user)->from('/compiled')->post('/assistenza', [
+        'subject' => 'Campo spostato', 'message' => 'Il nome finisce sopra la riga', 'page' => '/compiled',
+    ])->assertRedirect('/compiled')->assertSessionHas('success');
+
+    expect(\App\Models\SupportTicket::where('tenant_id', $user->tenant_id)->where('status', 'aperto')->count())->toBe(1);
+
+    $this->actingAs($user)->get('/superadmin/ticket')->assertForbidden();
+
+    $super = User::factory()->create(['role' => 'superadmin', 'tenant_id' => null, 'email_verified_at' => now()]);
+    $this->actingAs($super)->get('/superadmin/ticket')
+        ->assertInertia(fn ($page) => $page->component('Superadmin/Tickets')->where('aperti', 1));
+});
+
+test('the AI assistant answers and the superadmin can read the conversation', function () {
+    config(['services.deepseek.key' => 'test-key']);
+    \Illuminate\Support\Facades\Http::fake([
+        'api.deepseek.com/*' => \Illuminate\Support\Facades\Http::response(['choices' => [['message' => ['content' => 'Vai in **Template** e trascina la linea.']]]]),
+    ]);
+    $user = trialUser();
+
+    $first = $this->actingAs($user)->postJson('/assistente', ['message' => 'Il nome è fuori posto', 'page' => '/compiled'])
+        ->assertOk()->assertJsonPath('reply', 'Vai in **Template** e trascina la linea.');
+
+    $this->actingAs($user)->postJson('/assistente', ['chat_id' => $first->json('chat_id'), 'message' => 'Grazie'])->assertOk();
+
+    $chat = \App\Models\AssistantChat::firstOrFail();
+    expect($chat->messages()->count())->toBe(4);
+
+    // Un altro cliente non può continuare la chat di qualcun altro.
+    $this->actingAs(trialUser())->postJson('/assistente', ['chat_id' => $chat->id, 'message' => 'ciao'])->assertNotFound();
+
+    $super = User::factory()->create(['role' => 'superadmin', 'tenant_id' => null, 'email_verified_at' => now()]);
+    $this->actingAs($super)->get("/superadmin/chat/{$chat->id}")
+        ->assertInertia(fn ($page) => $page->component('Superadmin/Chats')->has('chat.messages', 4));
+});
+
+test('without DeepSeek the assistant points to human support', function () {
+    config(['services.deepseek.key' => null]);
+
+    $this->actingAs(trialUser())->postJson('/assistente', ['message' => 'aiuto'])
+        ->assertOk()->assertJsonPath('reply', fn ($r) => str_contains($r, 'Assistenza'));
+});

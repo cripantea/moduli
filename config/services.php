@@ -43,6 +43,13 @@ return [
         'price'          => env('STRIPE_PRICE_ID'),
     ],
 
+    // Assistente AI dentro l'app (stessa chiave di Fusion CRM).
+    'deepseek' => [
+        'key'      => env('DEEPSEEK_API_KEY'),
+        'model'    => env('DEEPSEEK_MODEL', 'deepseek-chat'),
+        'base_url' => env('DEEPSEEK_BASE_URL', 'https://api.deepseek.com'),
+    ],
+
     // Pixel Meta: si carica solo dopo il consenso ai cookie (banner nel sito).
     'meta' => [
         'pixel_id' => env('META_PIXEL_ID'),

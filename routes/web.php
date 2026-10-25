@@ -1,10 +1,14 @@
 <?php
 
+use App\Http\Controllers\AssistantController;
 use App\Http\Controllers\CompiledModuleController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ModuleTemplateController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\SupportTicketController;
+use App\Http\Controllers\Superadmin\SupportTicketController as SuperadminTicketController;
+use App\Http\Controllers\Superadmin\AssistantChatController as SuperadminChatController;
 use App\Http\Controllers\Superadmin\SuperadminController;
 use App\Http\Controllers\Superadmin\TenantController;
 use Illuminate\Support\Facades\Route;
@@ -14,6 +18,10 @@ use Inertia\Inertia;
 Route::get('/', function () {
     return Inertia::render('Landing');
 })->name('landing');
+
+Route::get('/termini', fn () => Inertia::render('Termini', [
+    'azienda' => config('moduli.company'),
+]))->name('termini');
 
 // Stripe chiama questo indirizzo quando un pagamento va a buon fine o un abbonamento si chiude.
 Route::post('/stripe/webhook', [SubscriptionController::class, 'webhook'])->name('stripe.webhook');
@@ -28,6 +36,12 @@ Route::middleware(['auth', 'active', 'tenant'])->group(function () {
     Route::post('/abbonamento/checkout', [SubscriptionController::class, 'checkout'])->name('abbonamento.checkout');
     Route::get('/abbonamento/attivo', [SubscriptionController::class, 'activated'])->name('abbonamento.attivo');
     Route::post('/abbonamento/gestisci', [SubscriptionController::class, 'portal'])->name('abbonamento.gestisci');
+    Route::post('/assistente', [AssistantController::class, 'store'])
+        ->middleware('throttle:assistant')
+        ->name('assistente.store');
+    Route::post('/assistenza', [SupportTicketController::class, 'store'])
+        ->middleware('throttle:5,60')
+        ->name('assistenza.store');
 
     // Templates
     Route::get('/templates', [ModuleTemplateController::class, 'index'])->name('templates.index');
@@ -78,6 +92,12 @@ Route::prefix('superadmin')->name('superadmin.')->middleware(['auth', 'active', 
     Route::post('/users', [SuperadminController::class, 'storeUser'])->name('users.store');
     Route::put('/users/{user}', [SuperadminController::class, 'updateUser'])->name('users.update');
     Route::post('/users/{user}/toggle', [SuperadminController::class, 'toggleUser'])->name('users.toggle');
+
+    // Assistenza
+    Route::get('/ticket', [SuperadminTicketController::class, 'index'])->name('tickets.index');
+    Route::put('/ticket/{ticket}', [SuperadminTicketController::class, 'update'])->name('tickets.update');
+    Route::get('/chat', [SuperadminChatController::class, 'index'])->name('chats.index');
+    Route::get('/chat/{chat}', [SuperadminChatController::class, 'show'])->name('chats.show');
 });
 
 require __DIR__ . '/auth.php';

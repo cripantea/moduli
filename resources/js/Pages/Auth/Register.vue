@@ -156,7 +156,7 @@ const submit = () => {
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
               </svg>
-              {{ form.processing ? 'Creazione account…' : 'Crea account gratuito' }}
+              {{ form.processing ? 'Creazione account…' : 'Crea il tuo account' }}
             </button>
 
           </form>
@@ -164,9 +164,9 @@ const submit = () => {
 
         <p class="text-center text-xs text-gray-400 mt-5 leading-relaxed px-2">
           Creando un account accetti i nostri
-          <a href="#" class="underline hover:text-gray-600">Termini di servizio</a>
+          <a href="/termini" target="_blank" class="underline hover:text-gray-600">Termini di servizio</a>
           e la
-          <a href="#" class="underline hover:text-gray-600">Privacy Policy</a>.
+          <a href="https://fusionsoft.it/privacy" target="_blank" rel="noopener" class="underline hover:text-gray-600">Privacy Policy</a>.
         </p>
 
         <p class="text-center text-sm text-gray-500 mt-4">
