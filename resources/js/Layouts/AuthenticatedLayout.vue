@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FusionSupport from '@/Components/Fusion/FusionSupport.vue'
 import SupportTicketButton from '@/Components/SupportTicketButton.vue'
 import AssistantWidget from '@/Components/AssistantWidget.vue'
 import LaunchBanner from '@/Components/LaunchBanner.vue'
@@ -209,5 +210,6 @@ const initials = computed(() =>
       <AssistantWidget />
     </div>
 
+    <FusionSupport :widget="$page.props.fusionWidget as any" />
   </div>
 </template>
