@@ -8,6 +8,13 @@ const open = ref(false)
 const form = useForm({ subject: '', message: '', page: '' })
 
 function show() {
+  // Con Fusion Desk collegato si apre il pannello Assistenza (conversazione, allegati, stato);
+  // altrimenti resta il modulo semplice che salva la richiesta qui.
+  const desk = (window as unknown as { FusionDesk?: { open(): void } }).FusionDesk
+  if (desk) {
+    desk.open()
+    return
+  }
   form.page = window.location.pathname
   open.value = true
 }

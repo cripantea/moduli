@@ -41,5 +41,7 @@
     </head>
     <body class="font-sans antialiased">
         @inertia
+        {{-- Fusion Desk: si apre dal pulsante "Assistenza" del layout (nessun pulsante flottante). --}}
+        {!! \App\FusionKit\Support::widgetTag(auth()->user(), ['button' => false]) !!}
     </body>
 </html>

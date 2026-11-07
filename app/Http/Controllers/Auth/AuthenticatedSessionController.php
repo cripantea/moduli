@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\FusionKit\FusionKitController;
+use App\FusionKit\Oidc;
+use App\FusionKit\Support;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\RedirectResponse;
@@ -21,6 +24,7 @@ class AuthenticatedSessionController extends Controller
         return Inertia::render('Auth/Login', [
             'canResetPassword' => Route::has('password.request'),
             'status' => session('status'),
+            'fusion' => Support::loginProps(),
         ]);
     }
 
@@ -29,6 +33,10 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
+        if (! Oidc::legacyLoginEnabled()) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['email' => 'Accedi con Fusion ID.']);
+        }
+
         $request->authenticate();
 
         $request->session()->regenerate();
@@ -39,14 +47,17 @@ class AuthenticatedSessionController extends Controller
     /**
      * Destroy an authenticated session.
      */
-    public function destroy(Request $request): RedirectResponse
+    public function destroy(Request $request): \Symfony\Component\HttpFoundation\Response
     {
+        // Se la sessione era di Fusion ID si esce anche da lì (tutti i software Fusionsoft).
+        $target = FusionKitController::logoutTarget($request);
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
 
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return $target === '/' ? redirect('/') : Inertia::location($target);
     }
 }

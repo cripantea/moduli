@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3'
 import InputError from '@/Components/InputError.vue'
+import FusionLoginButtons from '@/Components/Fusion/FusionLoginButtons.vue'
 import FusionsoftBadge from '@/Components/FusionsoftBadge.vue'
 
 defineProps<{
   canResetPassword?: boolean
   status?: string
+  fusion?: { enabled: boolean; google: boolean; legacy: boolean; error?: string | null }
 }>()
 
 const form = useForm({
@@ -59,7 +61,9 @@ const submit = () => {
             {{ status }}
           </div>
 
-          <form @submit.prevent="submit" class="space-y-5">
+          <FusionLoginButtons :fusion="fusion" />
+
+          <form v-if="!fusion?.enabled || fusion.legacy" @submit.prevent="submit" class="space-y-5">
 
             <div>
               <label for="email" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
