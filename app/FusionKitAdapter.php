@@ -18,14 +18,14 @@ class FusionKitAdapter implements Adapter
         $user = User::where('fusion_id_sub', $claims['sub'])->first();
         if (! $user) {
             if (! $claims['email_verified']) {
-                throw new LinkError('Conferma prima la tua email in Fusion ID, poi riprova.');
+                throw new LinkError('Conferma prima la tua email (trovi il link nella posta), poi riprova.');
             }
             $user = User::where('email', $claims['email'])->first();
             if (! $user) {
                 throw new LinkError("Non c'è un account Fusion Moduli per {$claims['email']}. Registrati prima da moduli.fusionsoft.it.");
             }
             if ($user->fusion_id_sub && $user->fusion_id_sub !== $claims['sub']) {
-                throw new LinkError('Questo account è già collegato a un altro accesso Fusion ID.');
+                throw new LinkError('Questo account è già collegato a un altro accesso: entra con quello o scrivi all\'assistenza.');
             }
             $user->forceFill(['fusion_id_sub' => $claims['sub']])->save();
         }
@@ -33,7 +33,7 @@ class FusionKitAdapter implements Adapter
             throw new LinkError($reason);
         }
         if ($user->isSuperAdmin() && ! in_array('mfa', $claims['amr'], true)) {
-            throw new LinkError('Per entrare come superadmin serve la verifica in due passaggi: attivala in Fusion ID.');
+            throw new LinkError('Per entrare come superadmin serve la verifica in due passaggi: attivala nella pagina di accesso.');
         }
         // Chi entra con Fusion ID ha l'email già verificata lì.
         if (method_exists($user, 'hasVerifiedEmail') && ! $user->hasVerifiedEmail()) {
